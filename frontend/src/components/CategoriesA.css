@@ -1,0 +1,145 @@
+/* ===== Варианти A — «Тирезаҳои равоқӣ». Ҳама дар зери .ca ===== */
+.ca { --ca-wine: #4a1028; --ca-gold: #d4af6e; --ca-gold-2: #b8862f; --ca-ease: cubic-bezier(.2, .8, .2, 1);
+  --ca-gold-grad: linear-gradient(135deg, #f3dca2 0%, #d4af6e 45%, #b8860b 100%);
+  position: relative; isolation: isolate; padding: 86px 0 84px; color: #4a1028; }
+
+/* ----- Навори бургундӣ бо сӯзанӣ ва хати равоқӣ ----- */
+.ca-band { position: absolute; left: 0; right: 0; top: 0; height: 420px; z-index: -1; pointer-events: none;
+  border-radius: 0 0 50% 50% / 0 0 140px 140px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d4af6e' stroke-width='1' opacity='.14'%3E%3Ccircle cx='60' cy='60' r='26'/%3E%3Ccircle cx='60' cy='60' r='9'/%3E%3Cpath d='M60 18c9 12 9 21 0 33-9-12-9-21 0-33zM60 69c9 12 9 21 0 33-9-12-9-21 0-33zM18 60c12-9 21-9 33 0-12 9-21 9-33 0zM69 60c12-9 21-9 33 0-12 9-21 9-33 0z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, #4a1028 0%, #5c1532 55%, #7a2a45 85%, #9c4f62 100%);
+  box-shadow: 0 2px 0 #f8f1e7, 0 6px 0 -2px var(--ca-gold); }
+/* хати тиллоии кунгурадор — ҳангоми пайдоиш аз марказ ба канорҳо «кашида» мешавад */
+.ca-edge { position: absolute; inset: auto 0 -14px; height: 100%; border-radius: inherit; border-bottom: 3px dotted var(--ca-gold); opacity: .9;
+  clip-path: inset(0 50% 0 50%); }
+.ca.in .ca-edge { animation: ca-edge 1.4s var(--ca-ease) .1s forwards; }
+@keyframes ca-edge { to { clip-path: inset(0 0 0 0); } }
+
+/* ----- Сарлавҳа: ҳарфҳо як-як пайдо мешаванд ----- */
+.ca-head { text-align: center; max-width: 680px; margin: 0 auto 54px; color: #fff6ea; }
+.ca-label { margin: 0 0 12px; font-size: .76rem; font-weight: 800; letter-spacing: .32em; text-transform: uppercase; color: #f3dca2;
+  opacity: 0; transition: opacity .8s ease .1s; }
+.ca-head h2 { margin: 0 0 10px; font-family: var(--serif); font-size: clamp(2.8rem, 6vw, 4.4rem); font-weight: 500; line-height: 1; color: #fff6ea; }
+.ca-head h2 span { display: inline-block; opacity: 0; transform: translateY(18px);
+  transition: opacity .6s ease calc(.15s + var(--k) * 45ms), transform .7s var(--ca-ease) calc(.15s + var(--k) * 45ms); }
+.ca-sub { margin: 0; font-size: 1.05rem; color: rgba(255, 246, 234, .85); opacity: 0; transition: opacity .8s ease .7s; }
+.ca.in .ca-label, .ca.in .ca-sub { opacity: 1; }
+.ca.in .ca-head h2 span { opacity: 1; transform: none; }
+
+/* ----- Шабака ва корт ----- */
+.ca-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px 18px; }
+.ca-card { --lift: 0px; position: relative; display: flex; flex-direction: column; text-decoration: none !important; color: inherit;
+  border-radius: 16px; background: #fffaf3; border: 1px solid #ecd9bf;
+  box-shadow: 0 16px 34px -22px rgba(90, 30, 40, .45);
+  transform: perspective(900px) translateY(var(--lift)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .5s var(--ca-ease), box-shadow .45s;
+  opacity: 0; }
+/* пайдоиш: корт боло мебарояд ва равоқ аз поён ба боло «кушода» мешавад */
+.ca.in .ca-card { animation: ca-rise 1s var(--ca-ease) calc(.5s + var(--i) * 80ms) both; }
+@keyframes ca-rise {
+  from { opacity: 0; translate: 0 34px; clip-path: inset(100% 0 0 0); }
+  30% { opacity: 1; }
+  to { opacity: 1; translate: 0 0; clip-path: inset(-60px -60px -60px -60px); }
+}
+/* хати дугонаи тиллоӣ */
+.ca-card::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .45s;
+  box-shadow: 0 0 0 1px var(--ca-gold), 0 0 0 5px #fffaf3, 0 0 0 6px rgba(212, 175, 110, .85), 0 0 34px 6px rgba(212, 175, 110, .4); }
+/* нури тиллоӣ, ки аз паси курсор ҳаракат мекунад */
+.ca-glare { position: absolute; inset: 0; z-index: 3; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s; mix-blend-mode: soft-light;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 236, 190, .9), transparent 45%); }
+.ca-card:focus-visible { outline: 3px solid var(--ca-gold-2); outline-offset: 6px; }
+
+/* Тиреза */
+.ca-window { position: relative; overflow: hidden; display: grid; place-items: center; aspect-ratio: 1 / 1; margin: 8px 8px 0;
+  border-radius: 10px; isolation: isolate;
+  background: radial-gradient(90% 80% at 50% 25%, #9c3b58 0%, #6e1a3a 55%, #4a1028 100%); }
+.ca-window img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1); transition: transform 1.4s var(--ca-ease); }
+.ca-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74, 16, 40, .55) 0%, rgba(74, 16, 40, .62) 50%, rgba(74, 16, 40, .85) 100%); transition: opacity .8s var(--ca-ease); }
+.ca-ico { color: #e9c784; stroke-width: 1.3; }
+.ca-ico > * { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.ca-ico-big { width: 46%; height: auto; stroke-width: 1.2; filter: drop-shadow(0 0 10px rgba(233, 199, 132, .45)); }
+/* Нишона дар ситораи ҳаштгӯша (шамса) — ҳошияи тиллоӣ, дарунаш бургундӣ */
+.ca-glass { --star: polygon(50% 0%, 61.5% 22.3%, 85.4% 14.6%, 77.7% 38.5%, 100% 50%, 77.7% 61.5%, 85.4% 85.4%, 61.5% 77.7%, 50% 100%, 38.5% 77.7%, 14.6% 85.4%, 22.3% 61.5%, 0% 50%, 22.3% 38.5%, 14.6% 14.6%, 38.5% 22.3%);
+  position: absolute; left: 50%; bottom: 10px; z-index: 2; display: grid; place-items: center; width: 64px; height: 64px; margin-left: -32px;
+  clip-path: var(--star); background: linear-gradient(135deg, #f8e3ad 0%, #d4af6e 40%, #9c6e24 70%, #f3d48f 100%);
+  transition: transform .6s var(--ca-ease); }
+.ca-glass::before { content: ''; position: absolute; inset: 4px; clip-path: var(--star);
+  background: radial-gradient(circle at 40% 30%, #8a2a4a 0%, #5c1532 55%, #3a0a1e 100%); }
+.ca-glass::after { content: ''; position: absolute; inset: 15px; border-radius: 3px; transform: rotate(45deg); border: 1px solid rgba(243, 220, 162, .45); }
+.ca-glass .ca-ico { position: relative; z-index: 1; width: 24px; height: 24px; color: #f3dca2; transition: transform .6s var(--ca-ease); }
+.ca-shimmer { position: absolute; inset: 0; z-index: 2; pointer-events: none; transform: translateX(-120%);
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 232, 186, .32) 50%, transparent 65%);
+  animation: ca-shine 6s ease-in-out infinite; animation-delay: calc(1.5s + var(--i) * .6s); }
+@keyframes ca-shine { 0% { transform: translateX(-120%); } 22%, 100% { transform: translateX(120%); } }
+.ca.is-paused .ca-shimmer { animation-play-state: paused; }
+.ca-badge { position: absolute; left: 50%; top: 14%; z-index: 2; transform: translateX(-50%); white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; font-size: .7rem; font-weight: 800; letter-spacing: .04em; color: #2a1508; background: var(--ca-gold-grad);
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, .5); }
+
+/* Матн */
+.ca-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 14px 12px 18px; }
+.ca-num { font-family: var(--serif); font-size: 1.1rem; color: #c9a063; letter-spacing: .08em; }
+.ca-name { font-family: var(--serif); font-size: 1.45rem; font-weight: 600; line-height: 1.1; }
+.ca-subs { align-self: stretch; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 0; font-size: .8rem; line-height: 1.5; color: #7a5a5f; }
+.ca-subs > span { white-space: normal; overflow-wrap: normal; } /* танҳо дар байни калимаҳо мегузарад, ҳеҷ гоҳ дар мобайни калима */
+.ca-subs > span + span::before { content: '·'; margin: 0 6px; color: var(--ca-gold-2); font-weight: 800; }
+.ca-more { color: #a68a8e; font-style: italic; }
+
+/* Hover (танҳо desktop) */
+@media (hover: hover) and (pointer: fine) {
+  .ca-card:hover { --lift: -8px; box-shadow: 0 30px 50px -26px rgba(90, 30, 40, .6); transition: transform .15s linear, box-shadow .45s; }
+  .ca-card:hover::after, .ca-card:hover .ca-glare { opacity: 1; }
+  .ca-card:hover .ca-window img { transform: scale(1.08); }
+  .ca-card:hover .ca-veil { opacity: .35; }
+  .ca-card:hover .ca-glass { transform: rotate(22.5deg); }
+  .ca-card:hover .ca-glass .ca-ico { transform: rotate(-22.5deg); }
+  .ca-card:hover .ca-num { background: var(--ca-gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ca-card:hover .ca-ico > * { animation: ca-draw 1.2s cubic-bezier(.4, .1, .2, 1) both; }
+  .ca-card:hover .ca-ico > *:nth-child(2) { animation-delay: .1s; }
+  .ca-card:hover .ca-ico > *:nth-child(3) { animation-delay: .2s; }
+  .ca-card:hover .ca-ico > *:nth-child(4) { animation-delay: .3s; }
+}
+@keyframes ca-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ----- CTA: пилюлаи тиллоӣ бо нур ----- */
+.ca-cta-wrap { display: flex; justify-content: center; margin-top: 48px; }
+.ca-cta { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 40px; border-radius: 999px;
+  font-size: 1.08rem; font-weight: 800; color: #2a1508; text-decoration: none !important; background: var(--ca-gold-grad);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 16px 36px -14px rgba(184, 134, 47, .8); transition: transform .3s var(--ca-ease); }
+.ca-cta::after { content: ''; position: absolute; inset: 0; transform: translateX(-120%); background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .6) 50%, transparent 70%);
+  animation: ca-shine 5s ease-in-out 2s infinite; }
+.ca.is-paused .ca-cta::after { animation-play-state: paused; }
+.ca-cta span { display: inline-block; transition: transform .3s var(--ca-ease); }
+.ca-cta:hover { transform: translateY(-2px); }
+.ca-cta:hover span { transform: translateX(5px); }
+
+/* ----- Планшет / мобилӣ ----- */
+@media (max-width: 1099px) { .ca-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767px) {
+  .ca { padding: 64px 0 60px; }
+  .ca-band { height: 330px; border-radius: 0 0 50% 50% / 0 0 70px 70px; }
+  .ca-head { margin-bottom: 34px; }
+  .ca-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; }
+  .ca-card { transform: none; transition: transform .15s ease; }
+  .ca-card:active { transform: scale(.97); }
+  .ca-window { margin: 6px 6px 0; }
+  .ca-glass { width: 52px; height: 52px; margin-left: -26px; bottom: 6px; }
+  .ca-glass::after { inset: 12px; }
+  .ca-glass .ca-ico { width: 19px; height: 19px; }
+  .ca-badge { font-size: .62rem; padding: 2px 8px; }
+  .ca-body { padding: 10px 6px 14px; }
+  .ca-name { font-size: 1.15rem; }
+  .ca-subs { font-size: .72rem; }
+  .ca-cta { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ca-edge { clip-path: none; }
+  .ca.in .ca-edge, .ca.in .ca-card, .ca-shimmer, .ca-cta::after { animation: none; }
+  .ca-shimmer { display: none; }
+  .ca-card { opacity: 1; transform: none; }
+  .ca-label, .ca-sub, .ca-head h2 span { opacity: 1; transform: none; transition: none; }
+  .ca-card:hover { --lift: 0px; }
+  .ca-card:hover .ca-ico > * { animation: none; }
+  .ca-window img, .ca-veil { transition: none; }
+}

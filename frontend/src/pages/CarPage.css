@@ -1,0 +1,55 @@
+/* ===== /moshin/:id — саҳифаи мошин ва фармоиш. Услуби «Шаби тӯй»; форма — .cg-modal-card аз CarsGallery.css ===== */
+.car-wrap { padding-top: 130px; padding-bottom: 72px; }
+.car-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; font-size: .92rem; color: rgba(245, 233, 218, .75); }
+.car-crumbs a { font-weight: 600; color: rgba(245, 233, 218, .75); text-decoration: none; transition: color .2s; }
+.car-crumbs a:hover { color: var(--gold); }
+.car-crumbs > span[aria-hidden] { color: var(--gold); }
+.car-crumbs > span:last-child { color: #f6efe3; }
+
+.car-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 28px; align-items: start; }
+
+/* ----- Акси калон ----- */
+.car-photo { position: relative; margin: 0; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 28px; background: #1a0a12;
+  border: 1px solid rgba(233, 199, 132, .4); box-shadow: 0 50px 100px -50px #000, 0 0 80px -40px rgba(212, 175, 106, .5); animation: car-in .8s var(--ease) both; }
+@keyframes car-in { from { opacity: 0; transform: scale(1.02); } }
+.car-photo img { width: 100%; height: 100%; object-fit: cover; }
+.car-photo-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(14, 5, 10, .92) 0%, rgba(14, 5, 10, .35) 42%, transparent 70%); }
+.car-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 30px; }
+.car-photo .cg-kicker { margin-bottom: 6px; }
+.car-photo h1 { margin: 0 0 6px; font-family: var(--serif); font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 500; line-height: 1.05; color: #fbf4e8; }
+.car-note { margin: 0 0 12px; font-family: var(--serif); font-style: italic; font-size: 1.1rem; color: #d9c39a; }
+
+/* ----- Мошинҳои дигар ----- */
+.car-more { margin-top: 22px; }
+.car-more-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.car-more-head h2 { margin: 0; font-family: var(--serif); font-size: 1.6rem; font-weight: 500; color: #fbf4e8; }
+.car-more-head span { font-size: .86rem; color: #b9a283; }
+.car-thumbs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.car-thumb { position: relative; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 14px; cursor: pointer; font: inherit; text-align: left;
+  color: #f6efe3; background: rgba(20, 7, 13, .6); border: 1px solid rgba(233, 199, 132, .22); transition: transform .25s, border-color .25s, box-shadow .25s, opacity .25s; }
+.car-thumb:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(233, 199, 132, .55); }
+.car-thumb.on { border-color: #f3d899; box-shadow: 0 0 0 2px #f3d899; }
+.car-thumb:disabled { opacity: .4; cursor: not-allowed; }
+.car-thumb:focus-visible { outline: 2px solid #fff1cc; outline-offset: 2px; }
+.car-thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.car-thumb span { padding: 6px 8px 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .74rem; font-weight: 700; }
+.car-thumb i { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-style: normal;
+  font-weight: 800; color: #f6efe3; background: rgba(20, 7, 13, .7); border: 1px solid rgba(233, 199, 132, .5); }
+.car-thumb.on i { color: #2a1d08; background: var(--gold-grad); border-color: transparent; }
+
+/* ----- Форма ----- */
+.car-order { position: sticky; top: 100px; width: 100%; margin: 0; }
+
+@media (max-width: 960px) {
+  .car-grid { grid-template-columns: 1fr; }
+  .car-order { position: static; }
+  .car-thumbs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .car-wrap { padding-top: 104px; padding-bottom: 40px; }
+  .car-photo { aspect-ratio: 4 / 5; border-radius: 22px; }
+  .car-photo figcaption { padding: 20px; }
+  .car-thumbs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .car-order { padding: 24px 18px 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .car-photo { animation: none; } }

@@ -1,0 +1,215 @@
+/* ===== «Мошинҳои бартар» (саҳифаи асосӣ) — шоурум бо coverflow ва заминаи акси мошини фаъол ===== */
+.cs { --cw: min(900px, 62vw); position: relative; isolation: isolate; overflow: hidden; overflow: clip; padding: 110px 0 96px; color: #f6efe3; }
+
+/* ----- Замина: акси хираи мошини фаъол + ранги бургундӣ ----- */
+.cs-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 110px, #000 calc(100% - 110px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 110px, #000 calc(100% - 110px), transparent 100%); }
+/* Акси хурд (600px) бо blur-и статикӣ, баъд бо transform калон — арзон; танҳо opacity анимация мешавад */
+.cs-bg-img { position: absolute; left: 50%; top: 50%; width: 30%; height: 30%; object-fit: cover; opacity: 0;
+  transform: translate(-50%, -50%) scale(4); filter: blur(10px) brightness(.45) saturate(1.15); transition: opacity .8s ease; }
+.cs-bg-img.on { opacity: 1; }
+.cs-bg-tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74, 16, 40, .55) 0%, rgba(42, 10, 24, .7) 55%, rgba(20, 6, 12, .9) 100%); }
+.cs-bg-pattern { position: absolute; inset: 0; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d4af6e' stroke-width='1.2'%3E%3Ccircle cx='60' cy='60' r='26'/%3E%3Ccircle cx='60' cy='60' r='9'/%3E%3Cpath d='M60 18c9 12 9 21 0 33-9-12-9-21 0-33zM60 69c9 12 9 21 0 33-9-12-9-21 0-33zM18 60c12-9 21-9 33 0-12 9-21 9-33 0zM69 60c12-9 21-9 33 0-12 9-21 9-33 0z'/%3E%3Cpath d='M0 0l14 14M120 0l-14 14M0 120l14-14M120 120l-14-14'/%3E%3C/g%3E%3C/svg%3E"); }
+.cs-bg-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 65% at 50% 48%, transparent 35%, rgba(10, 3, 6, .7) 100%); }
+/* «Фарши шоурум»: хати инъикосӣ ва равшании нарм */
+.cs-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 34%;
+  background: linear-gradient(180deg, transparent 0%, rgba(233, 199, 132, .05) 40%, rgba(10, 3, 6, .5) 100%); }
+.cs-floor::before { content: ''; position: absolute; left: 8%; right: 8%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233, 199, 132, .45) 30%, rgba(255, 241, 204, .7) 50%, rgba(233, 199, 132, .45) 70%, transparent); }
+
+/* ----- Сарлавҳа ----- */
+.cs-head { text-align: center; max-width: 720px; margin: 0 auto 48px; }
+.cs-kicker { display: flex; align-items: center; justify-content: center; gap: 14px; font-size: .72rem; font-weight: 800; letter-spacing: .32em;
+  text-transform: uppercase; color: var(--gold); margin: 0 0 16px; }
+.cs-kicker span { width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+.cs-kicker span:last-child { transform: scaleX(-1); }
+.cs-head h2 { font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 500; line-height: 1.05; letter-spacing: -.01em; margin: 0 0 14px; color: #f8f0e3; }
+.cs-sub { margin: 0; font-family: var(--serif); font-style: italic; font-size: clamp(1.1rem, 2vw, 1.4rem); color: #d9c39a; }
+
+/* ----- Саҳна: coverflow ----- */
+.cs-stage { position: relative; padding: 8px 0 40px; touch-action: pan-y; }
+.cs-track { position: relative; width: var(--cw); aspect-ratio: 16 / 9; margin: 0 auto; perspective: 1200px; }
+.cs-card { position: absolute; inset: 0; overflow: hidden; border-radius: 28px; background: #120a0e; isolation: isolate;
+  border: 1px solid rgba(233, 199, 132, .5); z-index: 1; pointer-events: none; will-change: transform, opacity;
+  /* Ҷой дар coverflow — тавассути тағйирёбандаҳо (showroomTransition.js низ аз онҳо истифода мебарад) */
+  --tx: 0%; --ry: 0deg; --sc: .7; --op: 0;
+  transform: translateX(var(--tx)) rotateY(var(--ry)) scale(var(--sc)); opacity: var(--op);
+  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, .95);
+  transition: transform .6s var(--ease), opacity .6s var(--ease); }
+.cs-card.is-cur { z-index: 3; --sc: 1; --op: 1; pointer-events: auto; border-color: rgba(233, 199, 132, .4);
+  box-shadow: 0 60px 120px -50px #000, 0 0 90px -34px rgba(212, 175, 106, .55); }
+/* Кортҳои паҳлӯ: ҳамон таносуб, scale .82, хамиши сабук ≤12°, нимшаффоф ва каме торик */
+.cs-card[data-pos="-1"] { z-index: 2; --tx: -78%; --ry: 12deg; --sc: .82; --op: .5; pointer-events: auto; cursor: pointer; }
+.cs-card[data-pos="1"] { z-index: 2; --tx: 78%; --ry: -12deg; --sc: .82; --op: .5; pointer-events: auto; cursor: pointer; }
+.cs-card[data-pos="-2"] { --tx: -130%; --ry: 12deg; }
+.cs-card[data-pos="2"] { --tx: 130%; --ry: -12deg; }
+.cs-card[data-pos="-1"]:hover, .cs-card[data-pos="1"]:hover { opacity: .7; }
+.cs-card::before { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: rgba(10, 4, 7, .35);
+  opacity: 0; transition: opacity .5s var(--ease); }
+.cs-card:not(.is-cur)::before { opacity: 1; }
+
+.cs-card-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cs-card-shade { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 4, 7, .38) 0%, transparent 24%, transparent 42%, rgba(10, 4, 8, .55) 66%, rgba(10, 4, 8, .95) 100%); }
+.cs-card-open { position: absolute; inset: 0; z-index: 1; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: inherit; }
+
+/* Кунҷҳои тиллоии ороишӣ — танҳо дар корти марказӣ */
+.cs-corners { position: absolute; inset: 14px; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+.cs-card.is-cur .cs-corners { opacity: 1; }
+.cs-corners i { position: absolute; width: 26px; height: 26px; border: 0 solid rgba(233, 199, 132, .75); }
+.cs-corners i:nth-child(1) { left: 0; top: 0; border-width: 1.5px 0 0 1.5px; border-top-left-radius: 12px; }
+.cs-corners i:nth-child(2) { right: 0; top: 0; border-width: 1.5px 1.5px 0 0; border-top-right-radius: 12px; }
+.cs-corners i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 1.5px 1.5px; border-bottom-left-radius: 12px; }
+.cs-corners i:nth-child(4) { right: 0; bottom: 0; border-width: 0 1.5px 1.5px 0; border-bottom-right-radius: 12px; }
+
+/* Панели поёнӣ: марка, модел, маълумот ва амалҳо. Пайдошавӣ пас аз «истодан» — showroomTransition.js */
+.cs-panel { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 24px; padding: 0 44px 40px; pointer-events: none; }
+.cs-info { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; opacity: 0; transition: opacity .25s ease; }
+.cs-card.is-cur .cs-info { opacity: 1; }
+.cs-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: .74rem; font-weight: 800; letter-spacing: .34em;
+  text-transform: uppercase; color: var(--gold); }
+.cs-brand::before { content: ''; width: 28px; height: 1px; background: var(--gold-grad, #d4af6a); }
+.cs-name { font-family: var(--serif); font-size: clamp(2rem, 3.3vw, 3.2rem); font-weight: 500; line-height: 1; letter-spacing: -.01em;
+  color: #fbf4e8; text-shadow: 0 2px 18px rgba(0, 0, 0, .55); }
+.cs-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid rgba(233, 199, 132, .28); }
+.cs-note { font-size: .72rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #e6d2a9; }
+.cs-plates .cg-plate { height: 30px; border-radius: 5px; box-shadow: 0 6px 16px -8px rgba(0, 0, 0, .8); }
+.cs-plates .cg-plate-flag i { width: 15px; height: 10px; }
+.cs-plates .cg-plate-flag b { font-size: 7px; }
+.cs-plates .cg-plate-num { padding: 0 10px; font-size: 1.05rem; }
+
+.cs-actions { display: flex; gap: 10px; flex: none; pointer-events: auto; }
+.cs-view { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: .88rem; font-weight: 700; color: #f6efe3; background: rgba(14, 6, 10, .55); border: 1px solid rgba(246, 239, 227, .3);
+  transition: border-color .25s, color .25s, background .25s; }
+.cs-view svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cs-view:hover { border-color: #e9c784; color: #f3d899; }
+.cs-view:focus-visible, .cs-actions .cg-pick:focus-visible { outline: 2px solid #fff1cc; outline-offset: 3px; }
+/* «Интихоб кардан» — амали асосӣ (тиллоӣ); пас аз интихоб — ҳошиявӣ */
+.cs-actions .cg-pick { height: 46px; padding: 0 22px; font-size: .88rem; font-weight: 800; color: #2a1d08; background: var(--gold-grad, #d4af6a);
+  border-color: transparent; box-shadow: 0 12px 26px -12px rgba(212, 175, 106, .8); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cs-actions .cg-pick span { font-size: 1.1rem; }
+.cs-actions .cg-pick.on { color: #f3d899; background: rgba(14, 6, 10, .6); border-color: #e9c784; box-shadow: none; }
+.cs-card.is-picked { border-color: #e9c784; }
+
+/* Дурахши ҳошия ҳангоми «истодан» (~400 мс) — андоза ва радиус айнан мисли корт */
+.cs-glow { position: absolute; inset: 0; z-index: 4; border-radius: 28px; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 1.5px rgba(246, 222, 160, .95), 0 0 24px 1px rgba(233, 199, 132, .5), inset 0 0 18px rgba(233, 199, 132, .22);
+  animation: cs-glow .4s ease-out both; }
+@keyframes cs-glow { 0% { opacity: 0; } 35% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Равшании тиллоӣ зери мошин */
+.cs-spot { position: absolute; left: 10%; right: 10%; bottom: -46px; height: 70px; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, rgba(244, 210, 140, .38) 0%, rgba(212, 175, 106, .12) 45%, transparent 70%); }
+
+/* Тирчаҳо: шишаи торик бо ҳошияи тиллоӣ, берун аз корт */
+.cs-arrow { position: absolute; top: calc(50% - 20px); z-index: 5; display: grid; place-items: center; width: 54px; height: 54px; padding: 0;
+  border-radius: 50%; cursor: pointer; color: #e9c784; background: rgba(16, 7, 11, .62); border: 1px solid rgba(233, 199, 132, .5);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 14px 30px -14px #000;
+  transition: transform .25s var(--ease), background .25s, color .25s, border-color .25s; }
+.cs-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cs-prev { left: calc(50% - var(--cw) / 2 - 42px); transform: translate(-50%, -50%); }
+.cs-next { left: calc(50% + var(--cw) / 2 + 42px); transform: translate(-50%, -50%); }
+.cs-arrow:hover { color: #2a1d08; background: var(--gold-grad, #d4af6a); border-color: transparent; transform: translate(-50%, -50%) scale(1.06); }
+.cs-arrow:focus-visible { outline: 2px solid #fff1cc; outline-offset: 3px; }
+
+/* ----- Идоракунӣ: «капсулаи» шишагӣ — ҳисоб ва пешравӣ, тасвирчаҳо, худкор, даст ----- */
+.cs-controls { display: flex; align-items: center; justify-content: center; gap: 16px; width: fit-content; max-width: 100%; margin: 22px auto 0;
+  padding: 8px 8px 8px 24px; border-radius: 999px; background: rgba(14, 6, 10, .55); border: 1px solid rgba(233, 199, 132, .2);
+  box-shadow: 0 24px 50px -28px #000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.cs-count { display: flex; flex-direction: column; gap: 7px; flex: none; font-size: .78rem; font-weight: 700; letter-spacing: .16em;
+  color: #b9a283; font-variant-numeric: tabular-nums; }
+.cs-count b { color: var(--gold); font-size: 1.05rem; }
+.cs-progress { display: block; width: 58px; height: 2px; border-radius: 2px; overflow: hidden; background: rgba(233, 199, 132, .18); }
+.cs-progress i { display: block; height: 100%; background: var(--gold-grad, #d4af6a); transform-origin: left; animation: cs-progress linear both; }
+@keyframes cs-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.cs-thumbs { display: flex; gap: 8px; padding: 4px 16px; overflow-x: auto; scrollbar-width: none;
+  border-left: 1px solid rgba(233, 199, 132, .14); border-right: 1px solid rgba(233, 199, 132, .14); }
+.cs-thumbs::-webkit-scrollbar { display: none; }
+.cs-thumb { flex: none; width: 66px; height: 44px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer; background: #120a0e;
+  opacity: .45; box-shadow: 0 0 0 1px rgba(233, 199, 132, .16); transition: opacity .3s, box-shadow .3s; }
+.cs-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cs-thumb:hover { opacity: .8; }
+.cs-thumb.on { opacity: 1; box-shadow: 0 0 0 2px #e9c784, 0 0 18px -4px rgba(233, 199, 132, .7); }
+.cs-thumb:focus-visible { outline: 2px solid #fff1cc; outline-offset: 2px; }
+.cs-dots { display: none; }
+.cs-play { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; cursor: pointer;
+  color: #e9c784; background: rgba(255, 255, 255, .04); border: 1px solid rgba(233, 199, 132, .35); transition: background .25s; }
+.cs-play svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.cs-play:hover, .cs-hand:hover { background: rgba(233, 199, 132, .14); }
+.cs-play:focus-visible, .cs-hand:focus-visible { outline: 2px solid #fff1cc; outline-offset: 2px; }
+
+/* Тугмаи «идоракунӣ бо даст» */
+.cs-hand { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; cursor: pointer;
+  color: #e9c784; background: rgba(255, 255, 255, .04); border: 1px solid rgba(233, 199, 132, .35); transition: background .25s, color .25s; }
+.cs-hand svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cs-hand.on { color: #2a1d08; background: var(--gold-grad, #d4af6a); border-color: transparent; }
+.cs-hand.loading svg { animation: cs-hand-pulse 1s ease-in-out infinite; }
+@keyframes cs-hand-pulse { 50% { opacity: .35; } }
+
+/* Пешнамоиши камера дар кунҷ: оинавӣ, нимшаффоф */
+.cs-cam { position: absolute; left: 16px; top: 16px; z-index: 6; width: 168px; border-radius: 16px; overflow: hidden;
+  background: rgba(12, 6, 9, .7); border: 1px solid rgba(233, 199, 132, .45); box-shadow: 0 16px 34px -16px rgba(0, 0, 0, .9); }
+.cs-cam[hidden] { display: none; }
+.cs-cam video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transform: scaleX(-1); opacity: .72; }
+.cs-cam-state { display: flex; align-items: center; gap: 7px; padding: 7px 10px; font-size: .72rem; font-weight: 700; color: #f6efe3; }
+.cs-cam-state i { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #8a7a6a; }
+.cs-cam.has-hand .cs-cam-state i { background: #6fdc8c; box-shadow: 0 0 8px #6fdc8c; }
+.cs-cam-arrow { position: absolute; left: 50%; top: 38%; translate: -50% -50%; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%;
+  font-size: 1.7rem; font-weight: 800; color: #2a1d08; background: var(--gold-grad, #d4af6a); opacity: 0; animation: cs-cam-arrow .7s ease-out both; }
+@keyframes cs-cam-arrow { 0% { opacity: 0; transform: scale(.6); } 25% { opacity: 1; transform: scale(1.08); } 100% { opacity: 0; transform: scale(1); } }
+.cs-cam-err { display: flex; align-items: flex-start; gap: 10px; width: fit-content; max-width: min(420px, 100%); margin: 16px auto 0; padding: 12px 12px 12px 16px;
+  border-radius: 14px; font-size: .86rem; line-height: 1.4; color: #f6efe3; background: rgba(40, 10, 22, .92); border: 1px solid rgba(233, 199, 132, .4);
+  box-shadow: 0 16px 34px -16px rgba(0, 0, 0, .9); }
+.cs-cam-err button { flex: none; width: 32px; height: 32px; margin: -4px -4px 0 0; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  color: #e9c784; background: rgba(255, 255, 255, .06); font-size: .9rem; }
+.cs .cg-more-wrap { margin-top: 34px; }
+
+/* Desktop: кортҳои паҳлӯ ба канори экран нарм нест мешаванд */
+@media (min-width: 768px) {
+  .cs-stage { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
+}
+@media (max-width: 1023px) {
+  .cs { --cw: 74vw; }
+  .cs-panel { padding: 0 28px 28px; }
+  .cs-prev { left: calc(50% - var(--cw) / 2); } .cs-next { left: calc(50% + var(--cw) / 2); }
+}
+
+/* ----- Мобилӣ: корти пурра 4:5, бе кортҳои паҳлӯ, нуқтаҳо ба ҷои тасвирчаҳо ----- */
+@media (max-width: 767px) {
+  .cs { --cw: 100%; padding: 80px 0 64px; }
+  .cs-head { margin-bottom: 28px; }
+  .cs-track { aspect-ratio: 3 / 4; }
+  .cs-card, .cs-glow { border-radius: 24px; }
+  .cs-card[data-pos="-1"], .cs-card[data-pos="-2"] { --tx: -104%; --ry: 0deg; --sc: .92; --op: 0; pointer-events: none; }
+  .cs-card[data-pos="1"], .cs-card[data-pos="2"] { --tx: 104%; --ry: 0deg; --sc: .92; --op: 0; pointer-events: none; }
+  .cs-bg-img { filter: blur(5px) brightness(.45) saturate(1.15); }
+  .cs-corners { inset: 10px; }
+  .cs-corners i { width: 18px; height: 18px; }
+  .cs-panel { flex-direction: column; align-items: stretch; gap: 16px; padding: 0 20px 20px; }
+  .cs-name { font-size: 1.85rem; }
+  .cs-meta { margin-top: 12px; padding-top: 10px; gap: 8px 14px; }
+  .cs-actions > * { flex: 1; justify-content: center; }
+  .cs-view, .cs-actions .cg-pick { height: 44px; padding: 0 12px; font-size: .82rem; }
+  .cs-arrow { width: 44px; height: 44px; top: 38%; }
+  .cs-prev { left: 30px; } .cs-next { left: auto; right: 30px; transform: translate(50%, -50%); }
+  .cs-next:hover { transform: translate(50%, -50%) scale(1.06); }
+  .cs-thumbs { display: none; }
+  .cs-dots { display: flex; gap: 6px; align-items: center; }
+  .cs-dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(246, 239, 227, .35); transition: width .3s var(--ease), background .3s; }
+  .cs-dots i.on { width: 22px; background: var(--gold-grad, #d4af6a); }
+  .cs-controls { width: 100%; justify-content: space-between; gap: 10px; padding: 6px 6px 6px 18px; }
+  .cs-dots { flex: 1; justify-content: center; }
+  .cs-cam { width: 104px; left: 12px; top: 12px; }
+  .cs-cam-state { font-size: .64rem; padding: 5px 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-card { --ry: 0deg !important; }
+  .cs-glow { display: none; }
+}

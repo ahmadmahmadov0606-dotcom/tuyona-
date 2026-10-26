@@ -1,0 +1,17 @@
+fastapi[standard]>=0.115
+uvicorn[standard]>=0.30
+SQLAlchemy>=2.0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+PyJWT>=2.8
+bcrypt>=4.1
+python-multipart>=0.0.9
+psycopg[binary]>=3.1
+# Ороишгоҳи AI (app/tryon.py)
+Pillow>=10.0
+numpy>=1.26
+opencv-python-headless>=4.9,<5  # 5.x CascadeClassifier-ро надорад (барқарор кардани рӯй)
+gradio_client>=1.0
+rembg[cpu]>=2.0  # тоза кардани заминаи акси либос — натиҷаи ороишгоҳ беҳтар мешавад
+# Ёрдамчии AI (app/assistant.py)
+anthropic>=2.3

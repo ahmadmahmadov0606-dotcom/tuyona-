@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tuyona
+      POSTGRES_PASSWORD: tuyona
+      POSTGRES_DB: tuyona
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tuyona"]
+      interval: 5s
+      retries: 10
+  app:
+    build: .
+    ports: ["${PORT:-8000}:8000"]
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://tuyona:tuyona@db:5432/tuyona
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY-ро дар .env гузоред}
+      CORS_ORIGINS: '["http://localhost:8000"]'
+      SEED_DEMO: ${SEED_DEMO:-1}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      FASHN_API_KEY: ${FASHN_API_KEY:-}
+    volumes: [uploads:/srv/backend/uploads]
+    depends_on:
+      db: { condition: service_healthy }
+volumes:
+  pgdata:
+  uploads:

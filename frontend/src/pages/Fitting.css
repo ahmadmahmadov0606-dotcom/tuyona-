@@ -1,0 +1,174 @@
+/* ===== /oroishgoh — ороишгоҳи AI. Услуби «Шаби тӯй»: шишаи торик, тилло; замина аз NightPage. Сарлавҳа — .hp-* аз MapPage.css ===== */
+.ft { --ft-cream: #f6efe3; --ft-soft: #cdb995; --ft-muted: #b9a283; --ft-line: rgba(233, 199, 132, .25); --ft-line-2: rgba(233, 199, 132, .5);
+  --ft-glass: rgba(20, 7, 13, .72); }
+.ft-wrap { padding-top: 144px; padding-bottom: 72px; }
+.ft .price { color: var(--ft-soft); }
+.ft .price b { color: #f3d899; }
+.ft .link { color: #f3d899; }
+
+/* ----- Сарлавҳа ----- */
+.ft-head { margin-bottom: 30px; }
+.ft-seal { display: grid; place-items: center; width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 50%; font-size: 1.6rem; color: var(--gold-ink);
+  background: var(--gold-grad); box-shadow: 0 0 0 8px rgba(233, 199, 132, .12), 0 16px 40px -12px rgba(212, 175, 106, .7); animation: ft-glow 3.5s ease-in-out infinite; }
+@keyframes ft-glow { 50% { box-shadow: 0 0 0 12px rgba(233, 199, 132, .06), 0 16px 50px -8px rgba(212, 175, 106, .9); } }
+
+/* ----- Се қадам ----- */
+.ft-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 1080px; margin: 0 auto 18px; padding: 0; list-style: none; }
+.ft-steps li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; font-size: .92rem; font-weight: 700; color: var(--ft-cream);
+  background: var(--ft-glass); border: 1px solid var(--ft-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color .3s, background .3s; }
+.ft-steps em { font-style: normal; color: var(--gold); }
+.ft-step-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; color: #f3d899;
+  background: rgba(233, 199, 132, .1); border: 1px solid var(--ft-line); transition: background .3s, color .3s; }
+.ft-steps li.done { border-color: var(--ft-line-2); background: rgba(60, 22, 34, .8); }
+.ft-steps li.done .ft-step-ico { color: var(--gold-ink); background: var(--gold-grad); border-color: transparent; }
+
+/* ----- Огоҳиҳо ----- */
+.ft-note { display: flex; align-items: center; gap: 14px; max-width: 1080px; margin: 0 auto 18px; padding: 14px 18px; border-radius: 18px;
+  background: var(--ft-glass); border: 1px solid var(--ft-line-2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ft-note p { flex: 1; margin: 0; font-size: .95rem; color: var(--ft-soft); }
+.ft-note-ico { flex: none; font-size: 1.5rem; color: var(--gold); }
+.ft-warn { max-width: 1080px; margin: 0 auto 18px; padding: 12px 16px; border-radius: 14px; font-size: .9rem; color: #ffd9a0;
+  background: rgba(120, 70, 10, .25); border: 1px solid rgba(240, 180, 90, .4); }
+.ft-warn-sm { margin: 12px 0 0; }
+
+/* ----- Тартиб: чап — сурат, рост — либосҳо ----- */
+.ft-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px; max-width: 1080px; margin: 0 auto; }
+.ft-left { position: sticky; top: 100px; align-self: start; min-width: 0; }
+.ft-right { min-width: 0; padding: 22px; border-radius: 26px; background: var(--ft-glass); border: 1px solid var(--ft-line);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* Бор кардани сурат */
+.ft-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; aspect-ratio: 3 / 4; padding: 28px; border-radius: 26px; cursor: pointer;
+  text-align: center; background: var(--ft-glass); border: 2px dashed var(--ft-line-2); transition: border-color .25s, background .25s, transform .25s; }
+.ft-drop:hover, .ft-drop:focus-visible, .ft-drop.over { border-color: #f3d899; background: rgba(60, 22, 34, .82); outline: none; }
+.ft-drop.over { transform: scale(1.01); }
+.ft-drop-ico { display: grid; place-items: center; width: 80px; height: 80px; border-radius: 50%; font-size: 2.1rem; color: var(--gold-ink);
+  background: var(--gold-grad); box-shadow: 0 0 0 10px rgba(233, 199, 132, .12), 0 20px 40px -16px #000; }
+.ft-drop-title { margin: 20px 0 4px; font-family: var(--serif); font-size: 1.8rem; font-weight: 500; color: var(--ft-cream); }
+.ft-drop-sub { margin: 0; font-size: .88rem; color: var(--ft-muted); }
+.ft-tips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 22px 0 0; padding: 0; list-style: none; text-align: left; font-size: .8rem; color: var(--ft-soft); }
+.ft-tips li { display: flex; align-items: center; gap: 6px; }
+.ft-tips .icon { flex: none; color: var(--gold); }
+
+/* Саҳнаи сурат */
+.ft-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 26px; background: #14070d; border: 1px solid var(--ft-line-2);
+  box-shadow: 0 40px 80px -40px #000, 0 0 60px -30px rgba(212, 175, 106, .5); transition: box-shadow .25s; }
+.ft-stage.over { box-shadow: 0 0 0 3px #f3d899, 0 40px 80px -40px #000; }
+.ft-stage img { display: block; width: 100%; max-height: 36rem; object-fit: contain; }
+.ft-reveal { animation: ft-reveal 1s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes ft-reveal { from { opacity: 0; filter: blur(12px) saturate(.4); transform: scale(1.03); } }
+.ft-stage-frame { position: absolute; inset: 12px; border-radius: 18px; border: 1px solid rgba(243, 216, 153, .3); pointer-events: none; }
+.ft-stage-busy { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 20px;
+  text-align: center; background: rgba(20, 7, 13, .62); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.ft-stage-busy p { margin: 10px 0 0; font-family: var(--serif); font-size: 1.5rem; color: var(--ft-cream); }
+.ft-stage-busy small { color: var(--ft-soft); }
+.ft-busy-ico { font-size: 3rem; color: #f3d899; animation: ft-pulse 1.4s ease-in-out infinite; }
+@keyframes ft-pulse { 50% { opacity: .45; transform: scale(.9); } }
+.ft-scan { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, #f3d899, transparent);
+  box-shadow: 0 0 18px 4px rgba(243, 216, 153, .55); animation: ft-scan 2.4s ease-in-out infinite; }
+@keyframes ft-scan { 50% { top: calc(100% - 2px); } }
+.ft-stage-hint { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(20, 7, 13, .45); pointer-events: none; }
+.ft-stage-hint span { padding: 10px 20px; border-radius: 999px; font-weight: 800; color: var(--gold-ink); background: var(--gold-grad); }
+.ft-toggle { position: absolute; left: 16px; top: 16px; display: flex; padding: 4px; border-radius: 999px; background: rgba(20, 7, 13, .7);
+  border: 1px solid var(--ft-line-2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ft-toggle button { min-height: 34px; padding: 0 16px; border: 0; border-radius: 999px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 800;
+  color: var(--ft-cream); background: none; transition: background .2s, color .2s; }
+.ft-toggle button.on { color: var(--gold-ink); background: var(--gold-grad); }
+.ft-stage-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+.ft-btn-line { color: #f3d899; background: transparent; border-color: var(--ft-line-2); text-decoration: none !important; }
+.ft-btn-line:hover:not(:disabled) { background: rgba(233, 199, 132, .12); }
+.ft .btn .icon { font-size: 1.1em; }
+
+.ft-run { margin-top: 18px; }
+.ft-privacy { display: flex; gap: 8px; margin: 14px 0 0; font-size: .8rem; line-height: 1.5; color: var(--ft-muted); }
+.ft-privacy .icon { flex: none; margin-top: 2px; font-size: 1rem; color: var(--gold); }
+.ft-buy { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px; border-radius: 18px; color: inherit; text-decoration: none !important;
+  background: var(--ft-glass); border: 1px solid var(--ft-line); transition: border-color .2s; }
+.ft-buy:hover { border-color: var(--ft-line-2); }
+.ft-buy img { flex: none; width: 48px; height: 64px; border-radius: 10px; object-fit: cover; }
+.ft-buy > span:not(.btn) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ft-buy b { font-size: .92rem; color: var(--ft-cream); }
+
+/* Стилисти AI */
+.ft-stylist { margin-top: 14px; }
+.ft-stylist > small { display: block; margin-top: 6px; font-size: .8rem; color: var(--ft-muted); }
+.ft-stylist-btn { width: 100%; min-height: 44px; }
+.ft-advice { margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(160deg, rgba(212, 175, 110, .14), rgba(20, 7, 13, .7));
+  border: 1px solid var(--ft-line-2); animation: ft-reveal .6s cubic-bezier(.2, .8, .2, 1) both; }
+.ft-advice-head { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.ft-advice-body { font-size: .92rem; line-height: 1.6; color: var(--ft-cream); }
+.ft-advice-body p { margin: 0 0 8px; }
+.ft-advice-body ul { margin: 0 0 8px; padding-left: 18px; }
+.ft-advice-body b { color: #f3d899; }
+.ft-advice-body a { color: #f3d899; font-weight: 700; }
+.ft-advice-cards { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+.ft-advice-cards button { flex: none; display: flex; align-items: center; gap: 8px; width: 210px; padding: 6px; border-radius: 12px; cursor: pointer; font: inherit;
+  text-align: left; color: inherit; background: rgba(20, 7, 13, .6); border: 1px solid var(--ft-line); }
+.ft-advice-cards button:hover { border-color: var(--ft-line-2); }
+.ft-advice-cards img { flex: none; width: 40px; height: 52px; border-radius: 8px; object-fit: cover; }
+.ft-advice-cards span { min-width: 0; display: flex; flex-direction: column; }
+.ft-advice-cards b, .ft-advice-cards small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ft-advice-cards b { font-size: .82rem; }
+.ft-advice-cards small { font-size: .72rem; color: var(--ft-muted); }
+
+/* ----- Либосҳо ----- */
+.ft-right-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.ft-right-head h2 { margin: 0; font-size: 1.8rem; font-weight: 500; color: #fbf4e8; }
+.ft-right-head span { font-size: .86rem; color: var(--ft-muted); }
+.ft-orn { display: block; width: 150px; margin: 6px 0 16px; color: var(--gold); }
+.ft-chips { display: flex; gap: 8px; margin: 0 -22px 12px; padding: 2px 22px; overflow-x: auto; scrollbar-width: none; }
+.ft-chips::-webkit-scrollbar { display: none; }
+.ft-chip { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; font: inherit; font-size: .86rem; font-weight: 700;
+  color: #efe3cd; background: rgba(20, 7, 13, .55); border: 1px solid rgba(233, 199, 132, .22); transition: background .2s, color .2s, border-color .2s; }
+.ft-chip:hover { border-color: rgba(233, 199, 132, .55); }
+.ft-chip.on { color: var(--gold-ink); background: var(--gold-grad); border-color: transparent; }
+.ft-hint { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: .86rem; color: var(--ft-muted); }
+.ft-hint .icon { color: var(--gold); }
+
+.ft-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ft-card { position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; border-radius: 16px; cursor: grab; font: inherit; color: inherit;
+  text-align: left; background: rgba(20, 7, 13, .6); border: 1px solid var(--ft-line); transition: transform .25s, border-color .25s, box-shadow .25s; }
+.ft-card:hover { transform: translateY(-3px); border-color: var(--ft-line-2); box-shadow: 0 20px 40px -24px #000; }
+.ft-card.on { border-color: #f3d899; box-shadow: 0 0 0 2px #f3d899, 0 20px 40px -24px #000; }
+.ft-card.blocked { opacity: .55; }
+.ft-card:focus-visible { outline: 2px solid #fff1cc; outline-offset: 2px; }
+.ft-card-img { display: block; aspect-ratio: 3 / 4; overflow: hidden; background: #2a1020; }
+.ft-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.ft-card:hover .ft-card-img img { transform: scale(1.05); }
+.ft-card-body { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 12px; }
+.ft-card-body b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .9rem; color: var(--ft-cream); }
+.ft-card-body small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .74rem; color: var(--ft-muted); }
+.ft-card-check { position: absolute; right: 8px; top: 8px; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  color: var(--gold-ink); background: var(--gold-grad); box-shadow: 0 6px 14px -4px #000; }
+
+.ft-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 44px 16px; border-radius: 18px; text-align: center;
+  border: 1px dashed var(--ft-line); color: var(--ft-soft); }
+.ft-empty p { margin: 0; }
+.ft-empty-ico { font-size: 2.4rem; color: var(--gold); }
+
+.ft-history { margin-top: 26px; }
+.ft-history h3 { margin: 0 0 12px; font-size: 1.35rem; font-weight: 500; color: #fbf4e8; }
+.ft-history > div { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.ft-history button { flex: none; width: 76px; height: 104px; padding: 0; overflow: hidden; border-radius: 12px; cursor: pointer; background: none;
+  border: 2px solid transparent; opacity: .75; transition: opacity .2s, border-color .2s; }
+.ft-history button:hover { opacity: 1; }
+.ft-history button.on { opacity: 1; border-color: #f3d899; }
+.ft-history img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ----- Планшет ва телефон ----- */
+@media (max-width: 960px) {
+  .ft-grid { grid-template-columns: 1fr; }
+  .ft-left { position: static; }
+}
+@media (max-width: 767px) {
+  .ft-wrap { padding-top: 112px; padding-bottom: 40px; }
+  .ft-steps { grid-template-columns: 1fr; gap: 8px; }
+  .ft-note { flex-wrap: wrap; }
+  .ft-right { padding: 16px; border-radius: 22px; }
+  .ft-chips { margin: 0 -16px 12px; padding: 2px 16px; }
+  .ft-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ft-drop-title { font-size: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ft-seal, .ft-scan, .ft-busy-ico, .ft-reveal { animation: none; }
+}

@@ -1,0 +1,89 @@
+/* ===== Варианти B — «Медалионҳои махмалӣ». Ҳама дар зери .cb ===== */
+.cb { --cb-cream: #f5e9da; --cb-gold: #d4af6e; --cb-ease: cubic-bezier(.2, .8, .2, 1);
+  position: relative; isolation: isolate; overflow: hidden; margin: 30px 0; padding: 104px 0 104px; color: var(--cb-cream);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d4af6e' stroke-width='1' opacity='.07'%3E%3Ccircle cx='60' cy='60' r='26'/%3E%3Ccircle cx='60' cy='60' r='9'/%3E%3Cpath d='M60 18c9 12 9 21 0 33-9-12-9-21 0-33zM60 69c9 12 9 21 0 33-9-12-9-21 0-33zM18 60c12-9 21-9 33 0-12 9-21 9-33 0zM69 60c12-9 21-9 33 0-12 9-21 9-33 0z'/%3E%3Cpath d='M0 0l14 14M120 0l-14 14M0 120l14-14M120 120l-14-14'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 70% at 50% 35%, #5a1430 0%, #3a0d20 50%, #1a0710 100%); }
+/* канорҳои кунгурадори тиллоӣ, ки бо саҳифаи шири пайваст мешаванд */
+.cb::before, .cb::after { content: ''; position: absolute; left: 0; right: 0; height: 24px; z-index: 2; pointer-events: none;
+  background: linear-gradient(var(--bg), var(--bg)) top / 100% 14px no-repeat, linear-gradient(90deg, #b8862f, #f3dca2, #b8862f); }
+.cb::before { top: -1px; -webkit-mask: radial-gradient(circle at 12px 24px, transparent 11px, #000 12px) 0 0 / 24px 24px repeat-x; mask: radial-gradient(circle at 12px 24px, transparent 11px, #000 12px) 0 0 / 24px 24px repeat-x; }
+.cb::after { bottom: -1px; transform: scaleY(-1); -webkit-mask: radial-gradient(circle at 12px 24px, transparent 11px, #000 12px) 0 0 / 24px 24px repeat-x; mask: radial-gradient(circle at 12px 24px, transparent 11px, #000 12px) 0 0 / 24px 24px repeat-x; }
+
+.cb-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.cb-glow { position: absolute; left: 50%; top: 40px; width: 720px; height: 320px; transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 175, 110, .28), transparent); }
+.cb-dot { position: absolute; width: var(--s); height: var(--s); border-radius: 50%; background: #f3dca2; box-shadow: 0 0 10px 2px rgba(233, 199, 132, .6);
+  opacity: 0; animation: cb-float var(--t) linear infinite; }
+@keyframes cb-float { 0% { transform: translate3d(0, 40px, 0); opacity: 0; } 20% { opacity: .8; } 80% { opacity: .6; } 100% { transform: translate3d(20px, -140px, 0); opacity: 0; } }
+.cb.is-paused .cb-dot, .cb.is-paused .cb-ring { animation-play-state: paused; }
+
+.cb-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+.cb-label { display: inline-flex; align-items: center; gap: 14px; margin: 0 0 14px; font-size: .76rem; font-weight: 800; letter-spacing: .32em; text-transform: uppercase; color: var(--cb-gold); }
+.cb-label span { width: 46px; height: 1px; background: linear-gradient(90deg, transparent, var(--cb-gold)); }
+.cb-label span:last-child { transform: scaleX(-1); }
+.cb-head h2 { margin: 0 0 12px; font-family: var(--serif); font-size: clamp(2.8rem, 6vw, 4.4rem); font-weight: 500; line-height: 1; color: #fff6ea; text-shadow: 0 6px 30px rgba(0, 0, 0, .45); }
+.cb-sub { margin: 0; font-size: 1.05rem; color: rgba(245, 233, 218, .78); }
+
+/* Медалионҳо: 5 + 5, қатори дуюм ним қадам ҷобаҷо */
+.cb-hive { --size: 170px; --gap: 44px; }
+.cb-row { display: flex; justify-content: center; gap: var(--gap); }
+.cb-row + .cb-row { margin-top: 10px; }
+.cb-row-off { transform: translateX(calc((var(--size) + var(--gap)) / 2)); }
+.cb-med { position: relative; display: flex; flex-direction: column; align-items: center; width: var(--size); text-align: center; color: inherit; text-decoration: none !important;
+  opacity: 0; translate: 0 24px; transition: opacity .8s var(--cb-ease) calc(var(--i) * 70ms), translate .8s var(--cb-ease) calc(var(--i) * 70ms); }
+.cb.in .cb-med { opacity: 1; translate: 0 0; }
+.cb-disc { position: relative; display: grid; place-items: center; width: var(--size); height: var(--size); transition: transform .5s var(--cb-ease); }
+.cb-ring { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: var(--cb-gold); stroke-width: 1.2; opacity: .75;
+  animation: cb-spin 30s linear infinite; animation-play-state: paused; }
+.cb-ring path { fill: rgba(212, 175, 110, .35); stroke-width: .8; }
+@keyframes cb-spin { to { transform: rotate(360deg); } }
+.cb-core { position: relative; display: grid; place-items: center; width: 74%; height: 74%; overflow: hidden; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a1530, #1f0812 75%); box-shadow: 0 0 0 1px var(--cb-gold), 0 0 0 5px rgba(26, 7, 16, .9), 0 0 0 6px rgba(212, 175, 110, .4), 0 18px 34px -12px rgba(0, 0, 0, .8);
+  transition: box-shadow .5s; }
+.cb-core img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .85; }
+.cb-ico { width: 44%; height: auto; color: var(--cb-gold); stroke-width: 1.3; filter: drop-shadow(0 0 8px rgba(212, 175, 110, .45)); }
+.cb-name { margin-top: 14px; font-family: var(--serif); font-size: 1.4rem; font-weight: 600; line-height: 1.1; color: #fff6ea; }
+.cb-subs { position: absolute; top: calc(100% + 8px); left: 50%; width: 240px; margin-left: -120px; padding: 10px 14px; border-radius: 14px; font-size: .82rem; line-height: 1.55;
+  color: rgba(245, 233, 218, .9); background: rgba(26, 7, 16, .94); border: 1px solid rgba(212, 175, 110, .45); box-shadow: 0 18px 40px -14px rgba(0, 0, 0, .9);
+  opacity: 0; transform: translateY(8px); transition: opacity .35s, transform .4s var(--cb-ease); pointer-events: none; }
+.cb-subs span + span::before { content: '·'; margin: 0 6px; color: var(--cb-gold); font-weight: 800; }
+.cb-med:focus-visible { outline: none; }
+.cb-med:focus-visible .cb-core { box-shadow: 0 0 0 2px #f3dca2, 0 0 0 6px rgba(26, 7, 16, .9), 0 0 0 8px #f3dca2; }
+
+@media (hover: hover) and (pointer: fine) {
+  .cb-med:hover { z-index: 3; }
+  .cb-med:hover .cb-disc { transform: translateY(-6px) scale(1.04); }
+  .cb-med:hover .cb-ring { animation-play-state: running; opacity: 1; }
+  .cb-med:hover .cb-core { box-shadow: 0 0 0 1px #f3dca2, 0 0 0 5px rgba(26, 7, 16, .9), 0 0 0 6px rgba(243, 220, 162, .8), 0 0 40px 4px rgba(212, 175, 110, .4); }
+  .cb-med:hover .cb-subs { opacity: 1; transform: none; }
+}
+/* дар қатори дуюм зеркатегорияҳо бояд ҷой дошта бошанд */
+.cb-hive { padding-bottom: 46px; }
+
+.cb-cta-wrap { display: flex; justify-content: center; margin-top: 30px; }
+.cb-cta { display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 32px; border-radius: 999px; font-weight: 800; color: #2a1508;
+  text-decoration: none !important; background: linear-gradient(135deg, #f3dca2 0%, #d4af6e 50%, #b8860b 100%); box-shadow: 0 14px 34px -14px rgba(212, 175, 110, .7);
+  transition: transform .3s var(--cb-ease); }
+.cb-cta span { display: inline-block; transition: transform .3s var(--cb-ease); }
+.cb-cta:hover { transform: translateY(-2px); }
+.cb-cta:hover span { transform: translateX(4px); }
+
+@media (max-width: 1199px) { .cb-hive { --size: 140px; --gap: 28px; } .cb-name { font-size: 1.2rem; } }
+@media (max-width: 899px) {
+  .cb { padding: 80px 0 84px; }
+  .cb-head { margin-bottom: 36px; }
+  .cb-dot-extra { display: none; }
+  .cb-hive { --size: 130px; padding-bottom: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; justify-items: center; }
+  .cb-row { display: contents; }
+  .cb-row-off { transform: none; }
+  .cb-name { margin-top: 10px; font-size: 1.15rem; }
+  .cb-subs { display: none; }
+  .cb-cta { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-dot { animation: none; opacity: .5; }
+  .cb-ring { animation: none; }
+  .cb-med { opacity: 1; translate: none; transition: none; }
+  .cb-med:hover .cb-disc { transform: none; }
+}

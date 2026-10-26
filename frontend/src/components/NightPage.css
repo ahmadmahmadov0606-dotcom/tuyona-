@@ -1,0 +1,7 @@
+/* ===== Wrapper-и саҳифаҳои торик (NightPage). Замина — дар PageBackground.css ===== */
+.night-page {
+  position: relative; isolation: isolate;
+  /* мундариҷа зери header сар мешавад (header ва footer худашон дигар намешаванд) */
+  margin: -74px 0 -60px; padding: 96px 0 120px;
+  color: #f5e9da; font-size: 16px; line-height: 1.65;
+}

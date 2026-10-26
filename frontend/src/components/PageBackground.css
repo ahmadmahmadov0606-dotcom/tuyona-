@@ -1,0 +1,55 @@
+/* ===== Заминаи ягонаи саҳифаҳо (PageBackground) — аз саҳифаи «Қонуни тӯй» ===== */
+/* Градиент нисбат ба экран (fixed); андозаи амудии 230% — то экран мисли болои /qonun-и пештара намояд */
+.page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  background: radial-gradient(ellipse 85% 230% at 50% 0%, #5a1430 0%, #3a0d20 45%, #1a0710 100%), #1a0710; }
+.page-bg-pattern { position: absolute; inset: 0; opacity: .06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d4af6e' stroke-width='1.2'%3E%3Ccircle cx='60' cy='60' r='26'/%3E%3Ccircle cx='60' cy='60' r='9'/%3E%3Cpath d='M60 18c9 12 9 21 0 33-9-12-9-21 0-33zM60 69c9 12 9 21 0 33-9-12-9-21 0-33zM18 60c12-9 21-9 33 0-12 9-21 9-33 0zM69 60c12-9 21-9 33 0-12 9-21 9-33 0z'/%3E%3Cpath d='M0 0l14 14M120 0l-14 14M0 120l14-14M120 120l-14-14'/%3E%3C/g%3E%3C/svg%3E"); }
+.page-bg-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 35%, transparent 40%, rgba(8, 2, 5, .65) 100%); }
+.page-bg-light { position: absolute; border-radius: 50%; opacity: .55; will-change: transform;
+  background: radial-gradient(circle, rgba(244, 210, 140, .55) 0%, rgba(244, 210, 140, .18) 40%, transparent 70%);
+  animation: page-bg-float var(--t, 30s) ease-in-out infinite alternate; }
+.page-bg-light.l1 { left: 4%; top: 6%; width: 160px; height: 160px; --t: 34s; }
+.page-bg-light.l2 { left: 22%; top: 2%; width: 70px; height: 70px; --t: 24s; }
+.page-bg-light.l3 { left: 46%; top: 10%; width: 220px; height: 220px; --t: 40s; opacity: .35; }
+.page-bg-light.l4 { left: 72%; top: 4%; width: 110px; height: 110px; --t: 28s; }
+.page-bg-light.l5 { left: 88%; top: 16%; width: 180px; height: 180px; --t: 36s; }
+.page-bg-light.l6 { left: 12%; top: 30%; width: 90px; height: 90px; --t: 22s; }
+.page-bg-light.l7 { left: 60%; top: 34%; width: 60px; height: 60px; --t: 26s; }
+.page-bg-light.l8 { left: 82%; top: 42%; width: 140px; height: 140px; --t: 32s; }
+.page-bg-light.l9 { left: 2%; top: 52%; width: 200px; height: 200px; --t: 38s; opacity: .35; }
+.page-bg-light.l10 { left: 34%; top: 58%; width: 80px; height: 80px; --t: 25s; }
+.page-bg-light.l11 { left: 52%; top: 68%; width: 160px; height: 160px; --t: 35s; }
+.page-bg-light.l12 { left: 78%; top: 72%; width: 70px; height: 70px; --t: 23s; }
+.page-bg-light.l13 { left: 16%; top: 80%; width: 120px; height: 120px; --t: 30s; }
+.page-bg-light.l14 { left: 90%; top: 86%; width: 100px; height: 100px; --t: 27s; }
+.page-bg-light.l15 { left: 40%; top: 90%; width: 180px; height: 180px; --t: 39s; opacity: .3; }
+.page-bg-light.l16 { left: 66%; top: 22%; width: 50px; height: 50px; --t: 21s; }
+/* чароғҳои гулобӣ */
+.page-bg-light.l2, .page-bg-light.l6, .page-bg-light.l10, .page-bg-light.l13, .page-bg-light.l16 {
+  background: radial-gradient(circle, rgba(240, 150, 175, .45) 0%, rgba(240, 150, 175, .14) 40%, transparent 70%); }
+@keyframes page-bg-float {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: .35; }
+  50% { opacity: .65; }
+  100% { transform: translate3d(40px, -60px, 0) scale(1.15); opacity: .45; }
+}
+.page-bg.is-paused .page-bg-light { animation-play-state: paused; }
+/* заминаи кӯҳнаи шири-ороишӣ (Layout .silk-bg) дар зери ин замина пинҳон мешавад */
+.has-page-bg .silk-bg { display: none; }
+
+@media (max-width: 899px) {
+  .page-bg-light.l7, .page-bg-light.l8, .page-bg-light.l9, .page-bg-light.l10, .page-bg-light.l11,
+  .page-bg-light.l12, .page-bg-light.l13, .page-bg-light.l14, .page-bg-light.l15, .page-bg-light.l16 { display: none; }
+  .page-bg-light { animation-duration: calc(var(--t, 30s) * 1.2); }
+}
+@media (prefers-reduced-motion: reduce) { .page-bg-light { animation: none; } }
+
+/* ----- Хонданӣ будани матнҳое, ки бевосита болои замина меистанд (танҳо ранг) ----- */
+/* Саҳифаи асосӣ: сарлавҳаҳои бахшҳо «Маъмултарин», «Чӣ тавр кор мекунад?» ва пайвандҳои «Бештар →» */
+.has-page-bg .section-title h2 { color: #fff8ee; }
+.has-page-bg .section-title .link { color: #f3dca2; }
+/* Саҳифаи ҷустуҷӯ: ҷадвалҳо ва шумораи натиҷаҳо */
+.has-page-bg .cp-tab { color: rgba(245, 233, 218, .78); }
+.has-page-bg .cp-tab:hover, .has-page-bg .cp-tab.on { color: #f3dca2; }
+.has-page-bg .cp-tabs-wrap { border-bottom-color: rgba(212, 175, 110, .3); }
+.has-page-bg .cp-count { color: rgba(245, 233, 218, .78); }
+.has-page-bg .cp-count b { color: #fff8ee; }

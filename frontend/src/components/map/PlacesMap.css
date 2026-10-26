@@ -1,0 +1,135 @@
+/* ===== Харитаи ҷойҳо (OpenFreeMap + MapLibre). Харита — рангҳои аслӣ; нишонаҳо, панелҳо ва popup — тилло ===== */
+.pm { color: #f6efe3; }
+
+/* ----- Панели боло: ҷустуҷӯ, филтрҳо, «Ман дар куҷо?» ----- */
+.pm-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.pm-search { position: relative; flex: 0 1 340px; min-width: 0; }
+.pm-search > svg { position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; translate: 0 -50%; fill: none; stroke: #d9b56e;
+  stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.pm-search input { width: 100%; height: 46px; padding: 0 16px 0 44px; border-radius: 999px; font: inherit; font-size: .95rem; color: #f6efe3;
+  background: rgba(20, 7, 13, .7); border: 1px solid rgba(233, 199, 132, .3); outline: none; transition: border-color .2s, box-shadow .2s; }
+.pm-search input::placeholder { color: #a8957a; }
+.pm-search input:focus { border-color: #e9c784; box-shadow: 0 0 0 3px rgba(233, 199, 132, .2); }
+.pm-suggest { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30; margin: 0; padding: 6px; list-style: none; border-radius: 16px;
+  background: rgba(22, 8, 14, .97); border: 1px solid rgba(233, 199, 132, .3); box-shadow: 0 24px 50px -20px #000; }
+.pm-suggest li { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 10px; cursor: pointer; }
+.pm-suggest li b { font-size: .92rem; font-weight: 700; color: #f6efe3; }
+.pm-suggest li span { font-size: .78rem; color: #b9a283; }
+.pm-suggest li.on { background: rgba(233, 199, 132, .12); }
+
+.pm-chips { display: flex; gap: 8px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.pm-chips::-webkit-scrollbar { display: none; }
+.pm-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: .88rem; font-weight: 700; color: #efe3cd; background: rgba(20, 7, 13, .55); border: 1px solid rgba(233, 199, 132, .22);
+  transition: background .2s, color .2s, border-color .2s; }
+.pm-chip em { font-style: normal; font-size: .74rem; color: #b9a283; }
+.pm-chip:hover { border-color: rgba(233, 199, 132, .55); }
+.pm-chip.on { color: #2a1d08; background: var(--gold-grad, #d4af6a); border-color: transparent; }
+.pm-chip.on em { color: #5a3e12; }
+.pm-geo { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: .88rem; font-weight: 700; color: #f3d899; background: transparent; border: 1px solid rgba(233, 199, 132, .5); transition: background .2s; }
+.pm-geo svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.pm-geo:hover:not(:disabled) { background: rgba(233, 199, 132, .12); }
+.pm-geo:disabled { opacity: .5; cursor: default; }
+.pm-chip:focus-visible, .pm-geo:focus-visible { outline: 2px solid #fff1cc; outline-offset: 2px; }
+
+/* ----- Саҳна ----- */
+.pm-stage { position: relative; height: 70vh; min-height: 480px; max-height: 780px; border-radius: 28px; overflow: hidden; background: #f8f4f0;
+  border: 1px solid rgba(233, 199, 132, .4); box-shadow: 0 50px 100px -50px #000, 0 0 80px -40px rgba(212, 175, 106, .5); isolation: isolate; }
+.pm-page .pm-stage { height: calc(100dvh - 250px); max-height: none; min-height: 520px; }
+.pm-stage:fullscreen { height: 100%; max-height: none; border-radius: 0; border: 0; }
+/* CSS-и MapLibre ба .maplibregl-map position: relative медиҳад — селектори қавитар */
+.pm-stage > .pm-map { position: absolute; inset: 0; z-index: 0; }
+.pm-overlay { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 24px; text-align: center; color: #5a4632; background: #f8f4f0; }
+.pm-loader { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(181, 135, 58, .25); border-top-color: #b5873a; animation: pm-spin .9s linear infinite; }
+@keyframes pm-spin { to { transform: rotate(360deg); } }
+.pm-notice { position: absolute; left: 50%; top: 16px; z-index: 6; translate: -50% 0; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px;
+  font-size: .86rem; color: #f6efe3; background: rgba(40, 10, 22, .94); border: 1px solid rgba(233, 199, 132, .4); box-shadow: 0 16px 34px -16px #000; }
+
+/* ----- Рӯйхати ҷойҳо: desktop — панели шишагӣ аз чап ----- */
+.pm-list { position: absolute; left: 16px; top: 16px; bottom: 16px; z-index: 4; width: 320px; display: flex; flex-direction: column;
+  border-radius: 20px; background: rgba(20, 7, 13, .86); border: 1px solid rgba(233, 199, 132, .25); box-shadow: 0 24px 50px -24px #000;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.pm-sheet-handle { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 16px 18px 12px; border: 0; background: none;
+  font: inherit; color: #cdb995; text-align: left; border-bottom: 1px solid rgba(233, 199, 132, .14); pointer-events: none; }
+.pm-sheet-handle b { font-family: var(--serif); font-size: 1.6rem; font-weight: 500; color: var(--gold); margin-right: 4px; }
+.pm-sheet-handle span { font-size: .86rem; }
+.pm-sheet-handle i, .pm-sheet-handle em { display: none; }
+.pm-list ul { flex: 1; min-height: 0; margin: 0; padding: 8px; list-style: none; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(233, 199, 132, .3) transparent; }
+.pm-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 14px; cursor: pointer;
+  font: inherit; color: inherit; text-align: left; background: none; transition: background .2s, border-color .2s; }
+.pm-item img { flex: none; width: 54px; height: 54px; border-radius: 12px; object-fit: cover; background: #2a1020; }
+.pm-item span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pm-item b { font-size: .92rem; font-weight: 700; color: #f6efe3; line-height: 1.25; }
+.pm-item small { font-size: .76rem; color: #b9a283; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-item:hover, .pm-item.hl { background: rgba(233, 199, 132, .1); }
+.pm-item.on { border-color: rgba(233, 199, 132, .6); background: rgba(233, 199, 132, .14); }
+.pm-item:focus-visible { outline: 2px solid #fff1cc; outline-offset: -2px; }
+
+/* ----- Popup ----- */
+.pm-popup .maplibregl-popup-content { padding: 0; background: transparent; box-shadow: none; border-radius: 18px; }
+.pm-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: rgba(233, 199, 132, .6); }
+.pm-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: rgba(233, 199, 132, .6); }
+.pm-pop { position: relative; width: 280px; overflow: hidden; border-radius: 18px; font-family: var(--font); color: #f6efe3;
+  background: rgba(22, 8, 14, .97); border: 1px solid rgba(233, 199, 132, .5); box-shadow: 0 30px 60px -24px #000, 0 0 40px -16px rgba(212, 175, 106, .5);
+  animation: pm-pop-in .28s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes pm-pop-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+.pm-pop-img { height: 132px; background: #2a1020; }
+.pm-pop-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-pop-x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; border-radius: 50%; cursor: pointer; font-size: .8rem;
+  color: #f6efe3; background: rgba(12, 5, 9, .7); border: 1px solid rgba(233, 199, 132, .4); }
+.pm-pop-body { padding: 14px 16px 14px; }
+.pm-pop-type { font-size: .66rem; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
+.pm-pop h3 { margin: 4px 0 6px; font-family: var(--serif); font-size: 1.35rem; font-weight: 600; line-height: 1.15; color: #fbf4e8; }
+.pm-pop-addr { margin: 0 0 4px; font-size: .84rem; color: #cdb995; }
+.pm-pop-tel { display: inline-block; font-size: .9rem; font-weight: 700; color: #f3d899; text-decoration: none; }
+.pm-pop-actions { display: flex; gap: 8px; margin-top: 12px; }
+.pm-pop-go, .pm-pop-route { flex: 1; display: inline-flex; align-items: center; justify-content: center; height: 40px; border-radius: 999px;
+  font-size: .86rem; font-weight: 800; text-decoration: none !important; }
+.pm-pop-go { color: #2a1d08; background: var(--gold-grad, #d4af6a); }
+.pm-pop-route { color: #f3d899; border: 1px solid rgba(233, 199, 132, .55); }
+.pm-pop-route:hover { background: rgba(233, 199, 132, .12); }
+.pm-pop-yandex { display: block; margin-top: 10px; font-size: .76rem; color: #b9a283; text-align: center; }
+
+/* ----- Идоракунии MapLibre ----- */
+.pm .maplibregl-ctrl-group { background: rgba(20, 7, 13, .86); border: 1px solid rgba(233, 199, 132, .35); border-radius: 12px; box-shadow: none; }
+.pm .maplibregl-ctrl-group button { width: 38px; height: 38px; }
+.pm .maplibregl-ctrl-group button + button { border-top: 1px solid rgba(233, 199, 132, .2); }
+.pm .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(.85) sepia(.6) saturate(2) hue-rotate(5deg); }
+.pm .maplibregl-ctrl.maplibregl-ctrl-attrib, .pm .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { background: rgba(20, 7, 13, .82); color: #cdb995; }
+.pm .maplibregl-ctrl-attrib a { color: #e9c784; }
+.pm .maplibregl-ctrl-attrib-button { filter: invert(.85); }
+/* Ишораи «Ctrl + чархак»: на пардаи торик, балки нишонаи хурди тиллоӣ дар маркази харита */
+.pm .maplibregl-cooperative-gesture-screen { display: grid; place-items: center; padding: 16px; background: rgba(20, 7, 13, .18); }
+.pm .maplibregl-cooperative-gesture-screen .maplibregl-desktop-message,
+.pm .maplibregl-cooperative-gesture-screen .maplibregl-mobile-message { padding: 12px 22px; border-radius: 999px; font-size: .92rem; font-weight: 700;
+  color: #f6efe3; background: rgba(22, 8, 14, .92); border: 1px solid rgba(233, 199, 132, .5); box-shadow: 0 20px 40px -18px #000;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+/* ----- Телефон: харита дар тамоми паҳно, рӯйхат — bottom sheet ----- */
+@media (max-width: 767px) {
+  .pm-toolbar { flex-wrap: wrap; gap: 10px; }
+  .pm-search { flex: 1 1 100%; }
+  .pm-chips { flex: 1 1 100%; margin: 0 -16px; padding: 2px 16px; }
+  .pm-geo { margin-left: 0; }
+  .pm-section .pm-stage, .pm-page .pm-stage { height: 72vh; height: 72dvh; min-height: 440px; margin: 0 -16px; border-radius: 0; border-left: 0; border-right: 0; }
+  .pm-list { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 62%; border-radius: 22px 22px 0 0; border-bottom: 0;
+    transform: translateY(calc(100% - 62px)); transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+  .pm-list.open { transform: none; }
+  .pm-sheet-handle { pointer-events: auto; cursor: pointer; padding: 18px 18px 12px; min-height: 62px; }
+  .pm-sheet-handle i { display: block; position: absolute; left: 50%; top: 7px; width: 40px; height: 4px; border-radius: 2px; translate: -50% 0; background: rgba(233, 199, 132, .45); }
+  .pm-sheet-handle em { display: block; margin-left: auto; font-style: normal; font-size: .8rem; font-weight: 700; color: #f3d899; }
+  .pm-sheet-handle b { font-size: 1.3rem; }
+  .pm-pop { width: 260px; }
+  .pm-pop-img { height: 110px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-list, .pm-pop { transition: none; animation: none; }
+  .pm-loader { animation-duration: 2s; }
+}
+
+/* ----- Харитаи хурд дар саҳифаи ҷой ----- */
+.pm-mini-stage { height: 300px; min-height: 0; max-height: none; border-radius: 20px; }
+.pm-mini-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: .9rem; color: #cdb995; }
+.pm-mini-actions { display: flex; gap: 8px; }
+.pm-mini-actions a { flex: none; padding: 0 18px; }
