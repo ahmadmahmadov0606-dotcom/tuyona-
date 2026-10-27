@@ -286,3 +286,58 @@ def test_car_orders(client, user):
     # мизоҷ бекор мекунад; бекоршударо бори дигар не
     assert client.patch(f"/api/car-orders/{o['id']}/cancel", headers=user).json()["status"] == "cancelled"
     assert client.patch(f"/api/car-orders/{o['id']}/cancel", headers=user).status_code == 400
+
+
+# ---------- Ороишгоҳ: мард / зан ----------
+def _png():
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGB", (60, 80), (200, 180, 160)).save(buf, "PNG")
+    return buf.getvalue()
+
+
+def test_tryon_gender_rules(client, user, vendor, ref, monkeypatch):
+    from app import gender, tryon
+    from app.routers import tryon as tryon_router
+
+    monkeypatch.setattr(tryon, "status", lambda: {"active": "test", "providers": ["test"], "supports": ["upper", "lower", "full"]})
+    monkeypatch.setattr(tryon, "garment_jpeg", lambda cover: b"garment")
+    monkeypatch.setattr(tryon, "run_tryon", lambda *a, **k: (_png(), "test", False))
+    detected = {"gender": "male", "confidence": 0.9}
+    monkeypatch.setattr(gender, "detect", lambda image: detected)
+
+    def outfit(slug, title):
+        r = client.post("/api/listings", headers=vendor, json={
+            "category_id": ref["cat"][slug]["id"], "city_id": ref["city"]["dushanbe"]["id"], "title": title,
+            "description": "", "contact_phone": "901111111", "price_from": 100, "price_unit": "day"})
+        lid = r.json()["id"]
+        img = client.post(f"/api/listings/{lid}/images", headers=vendor, files={"files": ("a.png", _png(), "image/png")})
+        assert img.status_code in (200, 201), img.text
+        return lid
+
+    dress, suit = outfit("wedding-dress", "Либоси арӯсӣ"), outfit("suit", "Смокинг")
+    wear = lambda lid, **form: client.post("/api/tryon", headers=user, files={"photo": ("p.png", _png(), "image/png")},
+                                           data={"listing_id": lid, **form})
+
+    # Мард → либоси арӯсӣ манъ, костюм иҷозат
+    r = wear(dress)
+    assert r.status_code == 422 and "занона" in r.json()["detail"]
+    assert wear(suit).status_code == 200
+    # Зан → костюм манъ
+    detected.update(gender="female")
+    assert wear(suit).status_code == 422
+    assert wear(dress).status_code == 200
+    # AI мутмаин нест → аз корбар мепурсем; интихоби корбар қабул мешавад
+    detected.update(gender=None, confidence=0.55)
+    assert wear(suit).status_code == 422
+    assert wear(suit, gender="male").status_code == 200
+    assert wear(dress, gender="male").status_code == 422
+
+    # Каталог аз рӯи ҷинс ва /detect
+    titles = lambda g: {o["title"] for o in client.get("/api/tryon/outfits", params={"gender": g}).json()}
+    assert titles("male") == {"Смокинг"} and titles("female") == {"Либоси арӯсӣ"}
+    detected.update(gender="female", confidence=0.88)
+    r = client.post("/api/tryon/detect", files={"photo": ("p.png", _png(), "image/png")})
+    assert r.json() == {"gender": "female", "confidence": 0.88}
+    assert tryon_router.SCENE_PHOTOS  # эълонҳои манзара аз каталог берунанд

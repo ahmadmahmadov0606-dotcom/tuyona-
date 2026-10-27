@@ -13,5 +13,6 @@ numpy>=1.26
 opencv-python-headless>=4.9,<5  # 5.x CascadeClassifier-ро надорад (барқарор кардани рӯй)
 gradio_client>=1.0
 rembg[cpu]>=2.0  # тоза кардани заминаи акси либос — натиҷаи ороишгоҳ беҳтар мешавад
+onnxruntime>=1.17  # шинохтани мард/зан (CLIP) ва rembg
 # Ёрдамчии AI (app/assistant.py)
 anthropic>=2.3

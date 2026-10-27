@@ -123,12 +123,17 @@ export default function Fitting() {
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
   const [busy, setBusy] = useState(false)
+  // Мард ё зан дар сурат: AI муайян мекунад, корбар метавонад иваз кунад. Либоси занона ба мард пӯшонда намешавад ва баръакс.
+  const [who, setWho] = useState(null) // { gender: 'male' | 'female' | null, confidence, byUser }
+  const [detecting, setDetecting] = useState(false)
   const photoUrl = usePreview(photo)
 
   const service = useAsync(() => api.tryonStatus(), [])
-  const outfits = useAsync(() => api.tryonOutfits(category), [category])
+  const outfits = useAsync(() => api.tryonOutfits(category, who?.gender || undefined), [category, who?.gender])
   const items = outfits.data || []
   const parts = service.data?.categories || {}
+  const genders = service.data?.genders || {}
+  const fits = (slug) => !who?.gender || !genders[slug] || genders[slug] === who.gender
   const supports = service.data?.supports || []
   const enabled = Boolean(service.data?.active)
   const catName = (slug) => catalog?.groups.flatMap((g) => g.categories).find((c) => c.slug === slug)?.name || slug
@@ -153,6 +158,12 @@ export default function Fitting() {
     }
   }
 
+  // Ҷинс иваз шуд — либос ва категорияи номувофиқ интихоб намемонад
+  useEffect(() => {
+    if (outfit && !fits(outfit.category.slug)) setOutfit(null)
+    if (category && !fits(category)) setCategory('')
+  }, [who?.gender]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const run = async () => {
     // Тугма ҳамеша фаъол аст — агар чизе намерасад, мегӯем чӣ кор кардан лозим
     if (!user) {
@@ -161,11 +172,14 @@ export default function Fitting() {
     }
     if (!photo) return toast('Аввал сурати худро бор кунед', 'err')
     if (!outfit) return toast('Либосро аз каталог интихоб кунед', 'err')
+    if (detecting) return toast('AI суратро месанҷад, як лаҳза…', 'err')
+    if (!who?.gender) return toast('Мард ё зан будани худро интихоб кунед', 'err')
+    if (!fits(outfit.category.slug)) return toast(`Ин либос ${genders[outfit.category.slug] === 'male' ? 'мардона' : 'занона'} аст`, 'err')
     if (!enabled) return toast('Хизмати AI ҳоло кор намекунад. Баъдтар кӯшиш кунед.', 'err')
     if (unsupported) return toast('Ин либосро ҳоло пӯшонда наметавонем', 'err')
     setBusy(true)
     try {
-      const data = await api.tryOn(photo, outfit.id)
+      const data = await api.tryOn(photo, outfit.id, who.gender)
       const entry = { ...data, outfit }
       setResult(entry)
       setHistory((h) => [entry, ...h].slice(0, 8))
@@ -175,7 +189,15 @@ export default function Fitting() {
       setBusy(false)
     }
   }
-  const choosePhoto = (file) => { setPhoto(file); setResult(null) }
+  const choosePhoto = (file) => {
+    setPhoto(file); setResult(null); setWho(null)
+    if (!file) return
+    setDetecting(true)
+    api.tryonDetect(file)
+      .then((r) => setWho({ gender: r.gender, confidence: r.confidence, byUser: false }))
+      .catch(() => setWho({ gender: null, confidence: 0, byUser: false }))
+      .finally(() => setDetecting(false))
+  }
   const onOutfitDrop = (e) => {
     const item = items.find((l) => l.id === Number(e.dataTransfer.getData(DRAG_TYPE)))
     if (item) setOutfit(item)
@@ -223,6 +245,20 @@ export default function Fitting() {
               ? <Stage photoUrl={photoUrl} result={result} loading={busy} onOutfitDrop={onOutfitDrop} onReset={() => choosePhoto(null)} onRetry={run} />
               : <PhotoDrop onFile={choosePhoto} onOutfitDrop={onOutfitDrop} />}
 
+            {photo && (
+              <div className="ft-gender" role="group" aria-label="Мард ё зан">
+                <span className="ft-gender-label">
+                  {detecting ? 'AI суратро месанҷад…'
+                    : who?.byUser ? 'Шумо интихоб кардед:'
+                    : who?.gender ? `AI муайян кард (${Math.round(who.confidence * 100)}%):`
+                    : 'AI муайян карда натавонист — интихоб кунед:'}
+                </span>
+                {[['male', 'Мард'], ['female', 'Зан']].map(([g, label]) => (
+                  <button key={g} type="button" className={`ft-chip ${who?.gender === g ? 'on' : ''}`} disabled={detecting}
+                    aria-pressed={who?.gender === g} onClick={() => setWho({ gender: g, confidence: 1, byUser: true })}>{label}</button>
+                ))}
+              </div>
+            )}
             <button type="button" className="btn btn-gold btn-lg btn-block ft-run" disabled={busy} onClick={run}>
               <Icon name="sparkle" /> {busy ? 'Интизор шавед… (то 1 дақиқа)' : !user ? 'Ворид шавед ва пӯшонед' : outfit ? `«${outfit.title}»-ро пӯшондан` : 'Пӯшондан'}
             </button>
@@ -272,7 +308,8 @@ export default function Fitting() {
             <Ornament className="ft-orn" />
 
             <div className="ft-chips">
-              {[['', 'Ҳама'], ...Object.keys(parts).map((s) => [s, catName(s)])].map(([value, label]) => (
+              {[['', who?.gender === 'male' ? 'Ҳамаи мардона' : who?.gender === 'female' ? 'Ҳамаи занона' : 'Ҳама'],
+                ...Object.keys(parts).filter(fits).map((s) => [s, catName(s)])].map(([value, label]) => (
                 <button key={value} type="button" className={`ft-chip ${category === value ? 'on' : ''}`} onClick={() => setCategory(value)}>{label}</button>
               ))}
             </div>

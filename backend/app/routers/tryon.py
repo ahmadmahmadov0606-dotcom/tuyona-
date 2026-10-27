@@ -2,11 +2,12 @@ import io
 import logging
 import re
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy import select
 
-from app import assistant, tryon
+from app import assistant, gender, tryon
 from app.core.config import get_settings
 from app.core.security import RateLimiter
 from app.deps import DB, CurrentUser, OptionalUser
@@ -25,14 +26,17 @@ MAX_PHOTO_MB = 10
 
 @router.get("/status")
 def tryon_status():
-    """Кадом провайдер ҳоло кор мекунад ва кадом категорияҳо кадом қисми баданро мепӯшонанд."""
-    return {**tryon.status(), "categories": tryon.WEARABLE}
+    """Кадом провайдер ҳоло кор мекунад, кадом категорияҳо кадом қисми баданро мепӯшонанд ва барои кӣ (мард/зан)."""
+    return {**tryon.status(), "categories": tryon.WEARABLE, "genders": gender.OUTFIT_GENDER}
 
 
 @router.get("/outfits", response_model=list[ListingCard])
-def outfits(db: DB, category: str | None = Query(None, description="slug-и категорияи либос")):
+def outfits(db: DB, category: str | None = Query(None, description="slug-и категорияи либос"),
+            for_gender: Literal["male", "female"] | None = Query(None, alias="gender", description="танҳо либосҳои мардона ё занона")):
     """Либосҳои каталог, ки AI метавонад пӯшонад (танҳо эълонҳои бо сурат)."""
     slugs = [category] if category in tryon.WEARABLE else list(tryon.WEARABLE)
+    if for_gender:
+        slugs = [s for s in slugs if gender.OUTFIT_GENDER.get(s) == for_gender]
     items = db.scalars(
         select(Listing).options(*LOAD)
         .join(Category, Listing.category_id == Category.id)
@@ -45,11 +49,45 @@ def outfits(db: DB, category: str | None = Query(None, description="slug-и ка
     return [l for l in items if l.cover and l.title not in scenes]
 
 
-@router.post("")
-def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form()):
-    """Сурати корбар + либоси эълон → сурати корбар дар он либос. Сурати аслӣ дар сервер нигоҳ дошта намешавад."""
+detect_limiter = RateLimiter(120, window_seconds=60 * 60)
+
+
+def _read_photo(photo: UploadFile):
     from PIL import Image, ImageOps, UnidentifiedImageError
 
+    data = photo.file.read(MAX_PHOTO_MB * 1024 * 1024 + 1)
+    if len(data) > MAX_PHOTO_MB * 1024 * 1024:
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, f"Сурат бояд аз {MAX_PHOTO_MB} МБ хурдтар бошад")
+    try:
+        image = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")  # рост, бе EXIF (GPS)
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Суратро хондан нашуд. JPG ё PNG бор кунед.")
+    image.thumbnail((1536, 1536))
+    return image
+
+
+def _detect(image) -> dict:
+    try:
+        return gender.detect(image)
+    except Exception as error:  # модел бор нашуд (интернет) — корбар худаш интихоб мекунад
+        log.warning("Gender detection failed: %s", error)
+        return {"gender": None, "confidence": 0}
+
+
+@router.post("/detect")
+def detect_gender(request: Request, photo: UploadFile, user: OptionalUser):
+    """Мард ё зан дар сурат (CLIP, ~50 мс). gender: null — AI мутмаин нест, корбар интихоб мекунад."""
+    key = f"user:{user.id}" if user else f"ip:{request.client.host if request.client else '?'}"
+    if not detect_limiter.allow(key):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Кӯшишҳо зиёд шуданд. Баъдтар кӯшиш кунед.")
+    return _detect(_read_photo(photo))
+
+
+@router.post("")
+def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(),
+           person_gender: Literal["male", "female"] | None = Form(None, alias="gender")):
+    """Сурати корбар + либоси эълон → сурати корбар дар он либос. Сурати аслӣ дар сервер нигоҳ дошта намешавад.
+    gender — ҷинсе, ки корбар тасдиқ кардааст; агар набошад, AI аз сурат муайян мекунад."""
     listing = db.scalar(select(Listing).options(*LOAD).where(Listing.id == listing_id, Listing.is_active.is_(True)))
     part = tryon.WEARABLE.get(listing.category.slug) if listing else None
     if not part:
@@ -59,22 +97,24 @@ def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(
     if part not in tryon.status()["supports"]:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Ин либосро ҳоло пӯшонда наметавонем")
 
-    data = photo.file.read(MAX_PHOTO_MB * 1024 * 1024 + 1)
-    if len(data) > MAX_PHOTO_MB * 1024 * 1024:
-        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, f"Сурат бояд аз {MAX_PHOTO_MB} МБ хурдтар бошад")
+    person = _read_photo(photo)
     s = get_settings()
-    try:
-        person = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")  # рост, бе EXIF (GPS)
-        person.thumbnail((1536, 1536))
-        garment = (s.upload_dir / listing.cover.rsplit("/", 1)[-1]).read_bytes()
-    except (UnidentifiedImageError, OSError):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Суратро хондан нашуд. JPG ё PNG бор кунед.")
+    cover = s.upload_dir / listing.cover.rsplit("/", 1)[-1]
+
+    # Либоси занона ба мард ва мардона ба зан пӯшонда намешавад
+    who = person_gender or _detect(person)["gender"]
+    if who is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Дар сурат мард ё зан будани шуморо муайян карда натавонистем — лутфан интихоб кунед.")
+    needed = gender.OUTFIT_GENDER.get(listing.category.slug)
+    if needed and needed != who:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT,
+                            f"Ин либоси {gender.NAMES[needed]} аст. Барои сурати {'мард' if who == 'male' else 'зан'} либоси {gender.NAMES[who]}-ро интихоб кунед.")
 
     if not daily_limiter.allow(f"tryon:{user.id}"):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Имрӯз кӯшишҳо тамом шуданд. Фардо боз кӯшиш кунед.")
 
     try:
-        result, provider, face_restored = tryon.run_tryon(person, garment, part, tryon.describe(listing.title, listing.category.slug))
+        result, provider, face_restored = tryon.run_tryon(person, tryon.garment_jpeg(cover), part, tryon.describe(listing.title, listing.category.slug))
     except tryon.TryOnError as error:
         log.warning("Try-on failed: %s", error)
         if isinstance(error, tryon.TryOnQuota):

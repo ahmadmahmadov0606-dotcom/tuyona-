@@ -26,6 +26,7 @@ fi
 .venv/bin/python -m app.seed --demo
 .venv/bin/python -m app.seed_outfits || echo "→ Либосҳои ороишгоҳ бор нашуданд (интернет?) — баъдтар: python -m app.seed_outfits"
 .venv/bin/python -m app.seed_photos || echo "→ Аксҳои эълонҳо бор нашуданд (интернет?) — баъдтар: python -m app.seed_photos"
+.venv/bin/python -m app.tryon >/dev/null 2>&1 || echo "→ Либосҳои ороишгоҳ тайёр нашуданд — баъдтар: python -m app.tryon"
 .venv/bin/python -m app.create_admin admin@tuyona.tj "Маъмур" admin12345 >/dev/null
 
 # --- Frontend ---

@@ -14,6 +14,7 @@ import base64
 import io
 import json
 import tempfile
+import threading
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -114,17 +115,34 @@ def _fashn(person, garment, category, description, deadline):
 
 # --- Hugging Face IDM-VTON -------------------------------------------------
 
+_clients: dict[str, object] = {}
+_clients_lock = threading.Lock()
+
+
+def _client(space):
+    """Пайваст ба Space як бор сохта мешавад (~5 сония) ва барои дархостҳои баъдӣ нигоҳ дошта мешавад."""
+    from gradio_client import Client
+
+    with _clients_lock:
+        if space not in _clients:
+            _clients[space] = Client(space, token=get_settings().hf_token or None, verbose=False, analytics_enabled=False)
+        return _clients[space]
+
+
+def _forget_client(space):
+    with _clients_lock:
+        _clients.pop(space, None)
+
+
 def _huggingface(person, garment, category, description, deadline):
-    from gradio_client import Client, handle_file
+    from gradio_client import handle_file
 
     with tempfile.TemporaryDirectory() as folder:
         person_path, garment_path = Path(folder, "person.jpg"), Path(folder, "garment.jpg")
         person_path.write_bytes(person)
         garment_path.write_bytes(garment)
         try:
-            # download_files=folder: натиҷа дар папкаи муваққатӣ мемонад ва бо он нест мешавад.
-            client = Client(HF_SPACE, token=get_settings().hf_token or None, verbose=False, download_files=folder, analytics_enabled=False)
-            job = client.submit(
+            job = _client(HF_SPACE).submit(
                 {"background": handle_file(str(person_path)), "layers": [], "composite": None},
                 handle_file(str(garment_path)),
                 description,
@@ -138,14 +156,17 @@ def _huggingface(person, garment, category, description, deadline):
         except TimeoutError as error:
             raise TryOnTimeout("Hugging Face timeout") from error
         except Exception as error:  # Space метавонад хоб, бе квота ё бо хато бошад
+            _forget_client(HF_SPACE)  # Space метавонад аз нав оғоз шуда бошад — дафъаи дигар пайвасти нав
             if "quota" in str(error).lower():
                 raise TryOnQuota(f"Hugging Face: {error}") from error
             raise TryOnError(f"Hugging Face: {error}") from error
-        return Path(output).read_bytes()
+        data = Path(output).read_bytes()
+        Path(output).unlink(missing_ok=True)  # клиенти умумӣ натиҷаро дар папкаи муваққатии худ мегузорад
+        return data
 
 
 def _leffa(person, garment, category, description, deadline):
-    from gradio_client import Client, handle_file
+    from gradio_client import handle_file
 
     model, garment_type = LEFFA_TYPES[category]
     with tempfile.TemporaryDirectory() as folder:
@@ -153,11 +174,10 @@ def _leffa(person, garment, category, description, deadline):
         person_path.write_bytes(person)
         garment_path.write_bytes(garment)
         try:
-            client = Client(LEFFA_SPACE, token=get_settings().hf_token or None, verbose=False, download_files=folder, analytics_enabled=False)
-            job = client.submit(
+            job = _client(LEFFA_SPACE).submit(
                 handle_file(str(person_path)), handle_file(str(garment_path)),
                 False,  # ref_acceleration
-                30,  # қадамҳо
+                25,  # қадамҳо (30 → 25: тезтар, сифат қариб ҳамон)
                 2.5,  # guidance scale
                 42,  # seed-и собит
                 model, garment_type,
@@ -168,10 +188,13 @@ def _leffa(person, garment, category, description, deadline):
         except TimeoutError as error:
             raise TryOnTimeout("Leffa timeout") from error
         except Exception as error:
+            _forget_client(LEFFA_SPACE)
             if "quota" in str(error).lower():
                 raise TryOnQuota(f"Leffa: {error}") from error
             raise TryOnError(f"Leffa: {error}") from error
-        return Path(output).read_bytes()
+        data = Path(output).read_bytes()
+        Path(output).unlink(missing_ok=True)  # клиенти умумӣ натиҷаро дар папкаи муваққатии худ мегузорад
+        return data
 
 
 _space_stage: dict[str, tuple[float, str]] = {}
@@ -228,15 +251,28 @@ def pad_to_portrait(image):
     return canvas.resize(SIZE, Image.LANCZOS), (round(left * k), round(top * k), round((left + w) * k), round((top + h) * k))
 
 
+_rembg = None
+_rembg_lock = threading.Lock()
+
+
+def _remove_background(data):
+    """Модели rembg як бор бор мешавад (пештар ҳар дафъа — ~30 сония)."""
+    global _rembg
+    from rembg import new_session, remove
+
+    with _rembg_lock:
+        if _rembg is None:
+            _rembg = new_session("u2net")
+        return remove(data, session=_rembg)
+
+
 def prepare_garment(data):
     """Либос бе замина (агар rembg бошад), дар миёнаи заминаи сафеди 3:4."""
     from PIL import Image
 
     image = Image.open(io.BytesIO(data))
     try:
-        from rembg import remove
-
-        image = Image.open(io.BytesIO(remove(data)))
+        image = Image.open(io.BytesIO(_remove_background(data)))
     except ImportError:
         pass
     image = image.convert("RGBA")
@@ -244,6 +280,17 @@ def prepare_garment(data):
     canvas = Image.new("RGBA", SIZE, (255, 255, 255, 255))
     canvas.alpha_composite(image, ((SIZE[0] - image.width) // 2, (SIZE[1] - image.height) // 2))
     return canvas.convert("RGB")
+
+
+def garment_jpeg(cover: Path) -> bytes:
+    """Акси тайёри либос (бе замина, 3:4) — як бор сохта, дар uploads/garments/ нигоҳ дошта мешавад."""
+    cached = get_settings().upload_dir / "garments" / f"{cover.stem}.jpg"
+    if cached.exists():
+        return cached.read_bytes()
+    data = _jpeg(prepare_garment(cover.read_bytes()))
+    cached.parent.mkdir(exist_ok=True)
+    cached.write_bytes(data)
+    return data
 
 
 def restore_face(original, result):
@@ -290,8 +337,8 @@ def status():
     }
 
 
-def run_tryon(person_image, garment_image, category, description="clothing"):
-    """person_image: сурати PIL RGB (рост). garment_image: байтҳои сурат. category: upper/lower/full.
+def run_tryon(person_image, garment, category, description="clothing"):
+    """person_image: сурати PIL RGB (рост). garment: JPEG-и тайёр аз garment_jpeg(). category: upper/lower/full.
     (JPEG-и одам дар либос, номи провайдер, рӯй барқарор шуд ё не) бармегардонад.
 
     TryOnTimeout — вақт тамом шуд; TryOnError — ҳамаи провайдерҳо натавонистанд.
@@ -300,7 +347,6 @@ def run_tryon(person_image, garment_image, category, description="clothing"):
 
     padded, box = pad_to_portrait(person_image)
     person = _jpeg(padded)
-    garment = _jpeg(prepare_garment(garment_image))
 
     deadline = time.monotonic() + TIMEOUT
     errors = []
@@ -323,3 +369,21 @@ def run_tryon(person_image, garment_image, category, description="clothing"):
         final, face_restored = restore_face(person_image, result)
         return _jpeg(final), name, face_restored
     raise (TryOnQuota if quota else TryOnError)("; ".join(errors) or "no provider available")
+
+
+def prepare_all():
+    """Аксҳои тайёри ҳамаи либосҳои каталогро пешакӣ месозад, то пӯшондани аввал ҳам тез бошад."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Category, Listing
+
+    with SessionLocal() as db:
+        covers = [l.cover for l in db.scalars(select(Listing).join(Category).where(Category.slug.in_(list(WEARABLE)))) if l.cover]
+    for cover in covers:
+        garment_jpeg(get_settings().upload_dir / cover.rsplit("/", 1)[-1])
+    print(f"Либосҳо тайёр: {len(covers)}")
+
+
+if __name__ == "__main__":
+    prepare_all()

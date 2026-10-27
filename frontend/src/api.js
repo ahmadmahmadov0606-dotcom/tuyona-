@@ -162,7 +162,12 @@ export const api = {
   assistantStream: streamAssistant,
   // ороишгоҳи AI
   tryonStatus: () => request('/tryon/status'),
-  tryonOutfits: (category) => request('/tryon/outfits', { params: { category } }),
+  tryonOutfits: (category, gender) => request('/tryon/outfits', { params: { category, gender } }),
+  tryonDetect: (photo) => {
+    const fd = new FormData()
+    fd.append('photo', photo)
+    return request('/tryon/detect', { method: 'POST', form: fd })
+  },
   tryonAdvice: (listingId, photo, result) => {
     const fd = new FormData()
     fd.append('listing_id', listingId)
@@ -170,10 +175,11 @@ export const api = {
     else if (photo) fd.append('photo', photo)
     return request('/tryon/advice', { method: 'POST', form: fd })
   },
-  tryOn: (photo, listingId) => {
+  tryOn: (photo, listingId, gender) => {
     const fd = new FormData()
     fd.append('photo', photo)
     fd.append('listing_id', listingId)
+    if (gender) fd.append('gender', gender)
     return request('/tryon', { method: 'POST', form: fd })
   },
   // admin
