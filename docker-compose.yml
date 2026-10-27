@@ -13,7 +13,8 @@ services:
       retries: 10
   app:
     build: .
-    ports: ["${PORT:-8000}:8000"]
+    # Танҳо аз худи сервер (nginx); барои дастрасии мустақим: PORT=0.0.0.0:8000
+    ports: ["${PORT:-127.0.0.1:8000}:8000"]
     restart: unless-stopped
     environment:
       ENVIRONMENT: production
