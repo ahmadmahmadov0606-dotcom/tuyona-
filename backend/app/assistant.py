@@ -88,6 +88,29 @@ class AssistantUnavailable(AssistantError):
 
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+# Моделҳои Google гоҳ «банд» (503) мешаванд ё барои корбарони нав бекор мешаванд (404) — пай дар пай месанҷем
+GEMINI_FALLBACKS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-flash-latest"]
+GEMINI_RETRY = {404, 429, 500, 503}
+
+
+def _gemini_post(http: httpx.Client, models: list[str], body: dict) -> httpx.Response:
+    """Аввалин модели кории рӯйхатро истифода мебарад; модели корӣ ба аввали рӯйхат мегузарад,
+    то давраҳои баъдии ҳамон ҷавоб (асбобҳо) бо ҳамон модел бошанд."""
+    s = get_settings()
+    last = None
+    for model in list(models):
+        r = http.post(GEMINI_URL.format(model=model), headers={"x-goog-api-key": s.gemini_api_key}, json=body)
+        if r.status_code not in GEMINI_RETRY:
+            models.remove(model)
+            models.insert(0, model)
+            return r
+        log.warning("Gemini %s: %s %s", model, r.status_code, r.text[:200])
+        last = r
+    return last
+
+
+def _gemini_models() -> list[str]:
+    return list(dict.fromkeys([get_settings().gemini_model, *GEMINI_FALLBACKS]))
 
 
 _ollama_seen: tuple[float, bool] | None = None
@@ -229,12 +252,12 @@ def _gemini(db: Session, system_text: str, today: str, history: list[dict], foun
         }]}],
         "generationConfig": {"maxOutputTokens": MAX_OUTPUT},
     }
-    url = GEMINI_URL.format(model=s.gemini_model)
+    models = _gemini_models()
     try:
         with httpx.Client(timeout=90) as http:
             for _ in range(MAX_TOOL_ROUNDS + 1):
-                r = http.post(url, headers={"x-goog-api-key": s.gemini_api_key}, json={**body, "contents": contents})
-                if r.status_code == 429:
+                r = _gemini_post(http, models, {**body, "contents": contents})
+                if r.status_code in (429, 503):
                     raise AssistantError("rate_limit")
                 if r.status_code >= 400:
                     log.warning("Gemini API error %s: %s", r.status_code, r.text[:300])
@@ -475,10 +498,10 @@ def stylist(outfit: dict, images: list[tuple[str, bytes]], alternatives: list[di
             return "".join(b.text for b in response.content if b.type == "text").strip()
         if which == "gemini":
             parts = [{"inline_data": {"mime_type": "image/jpeg", "data": d}} for d in b64] + [{"text": text}]
-            r = httpx.post(GEMINI_URL.format(model=s.gemini_model), headers={"x-goog-api-key": s.gemini_api_key}, timeout=120,
-                           json={"contents": [{"role": "user", "parts": parts}], "generationConfig": {"maxOutputTokens": MAX_OUTPUT}})
+            with httpx.Client(timeout=120) as http:
+                r = _gemini_post(http, _gemini_models(), {"contents": [{"role": "user", "parts": parts}], "generationConfig": {"maxOutputTokens": MAX_OUTPUT}})
             if r.status_code >= 400:
-                raise AssistantError("rate_limit" if r.status_code == 429 else str(r.status_code))
+                raise AssistantError("rate_limit" if r.status_code in (429, 503) else str(r.status_code))
             cand = (r.json().get("candidates") or [{}])[0]
             return "".join(p.get("text", "") for p in cand.get("content", {}).get("parts", []) if not p.get("thought")).strip()
         message = {"role": "user", "content": text, **({"images": b64} if b64 else {})}

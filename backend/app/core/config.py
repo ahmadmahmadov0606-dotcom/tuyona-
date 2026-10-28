@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     assistant_max_tokens: int = 4096  # дарозии ҷавоб (токенҳо); модели маҳаллӣ дар 8 ГБ — то ~4000 беҳтар
     # Агар калиди Claude набошад — Google Gemini (ройгон, бе корт): https://aistudio.google.com/apikey
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash"  # агар банд бошад — моделҳои захиравӣ (assistant.GEMINI_FALLBACKS)
     # Ё модели маҳаллӣ (бе калид): Ollama дар ҳамин компютер, масалан OLLAMA_MODEL=gemma4:12b-it-qat
     ollama_url: str = "http://127.0.0.1:11434"
     ollama_model: str = ""
