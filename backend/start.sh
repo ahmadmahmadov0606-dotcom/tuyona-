@@ -22,4 +22,4 @@ if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
 fi
 # Контейнер танҳо аз nginx-и худи сервер дастрас аст (порт ба 127.0.0.1 баста) — ба X-Forwarded-For бовар мекунем,
 # то маҳдудиятҳои барнома (воридшавӣ, AI) IP-и воқеии корбарро бинанд, на IP-и Docker
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips='*'
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers "${WORKERS:-1}" --proxy-headers --forwarded-allow-ips='*'

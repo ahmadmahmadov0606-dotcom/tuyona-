@@ -16,8 +16,13 @@ services:
     # Танҳо аз худи сервер (nginx); барои дастрасии мустақим: PORT=0.0.0.0:8000
     ports: ["${PORT:-127.0.0.1:8000}:8000"]
     restart: unless-stopped
+    # Сервер умумӣ аст: агар хотира тамом шавад, танҳо ҳамин контейнер аз нав оғоз мешавад, на тамоми сервер
+    mem_limit: ${APP_MEM_LIMIT:-1g}
+    memswap_limit: ${APP_MEM_LIMIT:-1g}
     environment:
       ENVIRONMENT: production
+      WORKERS: ${WORKERS:-1}
+      REMBG_MODEL: ${REMBG_MODEL:-u2netp}
       DATABASE_URL: postgresql+psycopg://tuyona:tuyona@db:5432/tuyona
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY-ро дар .env гузоред}
       CORS_ORIGINS: '["http://localhost:8000"]'

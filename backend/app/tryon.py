@@ -262,7 +262,7 @@ def _remove_background(data):
 
     with _rembg_lock:
         if _rembg is None:
-            _rembg = new_session("u2net")
+            _rembg = new_session(get_settings().rembg_model)
         return remove(data, session=_rembg)
 
 

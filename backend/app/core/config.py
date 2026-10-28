@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     fashn_api_url: str = "https://api.fashn.ai"
     hf_token: str = ""
     tryon_daily_limit: int = 20
+    # Тоза кардани заминаи либос: u2netp — хурд (~5 МБ, кам хотира, барои сервер); u2net — беҳтар, вале ~1 ГБ хотира
+    rembg_model: str = "u2netp"
 
     # Ёрдамчии AI (чат): Claude. Калид аз https://platform.claude.com → API keys
     anthropic_api_key: str = ""
