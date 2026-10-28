@@ -395,3 +395,26 @@ def test_no_law_banned_categories(client):
     groups = client.get("/api/categories").json()
     slugs = {g["slug"] for g in groups} | {c["slug"] for g in groups for c in g["categories"]}
     assert not slugs & {"dowry", "bedding", "furniture", "tabaq"}
+
+
+def test_feedback(client, user):
+    from app.routers.feedback import feedback_limiter
+    feedback_limiter.reset()
+    # Бе воридшавӣ ҳам мумкин; паёми кӯтоҳ — 422
+    assert client.post("/api/feedback", json={"message": "хуб"}).status_code == 422
+    assert client.post("/api/feedback", json={"topic": "bug", "message": "Тугмаи брон кор намекунад", "page": "/listing/1",
+                                              "name": "Аҳмад", "contact": "+992900000000"}).status_code == 201
+    # Корбари воридшуда — ном ва email худкор
+    assert client.post("/api/feedback", headers=user, json={"topic": "praise", "rating": 5, "message": "Сайти олӣ!"}).status_code == 201
+    assert client.post("/api/feedback", json={"message": "салом салом", "rating": 9}).status_code == 422
+    # Танҳо маъмур мехонад
+    assert client.get("/api/admin/feedback", headers=user).status_code == 403
+    admin = _make_admin(client)
+    assert client.get("/api/admin/stats", headers=admin).json()["feedback_unread"] == 2
+    items = client.get("/api/admin/feedback", headers=admin).json()["items"]
+    assert [i["topic"] for i in items] == ["praise", "bug"] and items[0]["name"] == "Мизоҷ" and items[0]["contact"] == "client@test.tj"
+    assert client.patch(f"/api/admin/feedback/{items[1]['id']}/read", headers=admin).json()["is_read"] is True
+    assert client.get("/api/admin/feedback", params={"unread": True}, headers=admin).json()["total"] == 1
+    # Спам: зиёда аз 5 дар як соат
+    codes = [client.post("/api/feedback", json={"message": f"паём {i} барои санҷиш"}).status_code for i in range(6)]
+    assert 429 in codes

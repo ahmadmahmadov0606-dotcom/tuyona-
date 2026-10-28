@@ -1,6 +1,6 @@
 import re
 from datetime import date, datetime
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated, Generic, Literal, TypeVar
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -218,6 +218,28 @@ class ReviewOut(ORM):
     author: VendorPublic
 
 
+# ---------- Фикру пешниҳод ----------
+class FeedbackIn(BaseModel):
+    topic: Literal["idea", "bug", "praise", "other"] = "idea"
+    rating: int | None = Field(default=None, ge=1, le=5)
+    message: str = Field(min_length=5, max_length=2000)
+    name: str = Field(default="", max_length=120)
+    contact: str = Field(default="", max_length=120)
+    page: str = Field(default="", max_length=200)
+
+
+class FeedbackOut(ORM):
+    id: int
+    topic: str
+    rating: int | None
+    message: str
+    name: str
+    contact: str
+    page: str
+    is_read: bool
+    created_at: datetime
+
+
 # ---------- Admin ----------
 class AdminUserOut(UserOut):
     is_active: bool
@@ -230,6 +252,7 @@ class AdminStats(BaseModel):
     active_listings: int
     bookings: int
     bookings_confirmed: int
+    feedback_unread: int = 0
 
 
 # ---------- Vendor ----------

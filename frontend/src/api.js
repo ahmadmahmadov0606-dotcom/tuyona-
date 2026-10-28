@@ -184,12 +184,15 @@ export const api = {
     if (gender) fd.append('gender', gender)
     return request('/tryon', { method: 'POST', form: fd })
   },
+  sendFeedback: (b) => request('/feedback', { method: 'POST', body: b }),
   // admin
   adminStats: () => request('/admin/stats'),
   adminUsers: (params) => request('/admin/users', { params }),
   adminSetUserActive: (id, active) => request(`/admin/users/${id}/active`, { method: 'PATCH', params: { active } }),
   adminListings: (params) => request('/admin/listings', { params }),
   adminCarOrders: (params) => request('/admin/car-orders', { params }),
+  adminFeedback: (params) => request('/admin/feedback', { params }),
+  adminSetFeedbackRead: (id, read) => request(`/admin/feedback/${id}/read`, { method: 'PATCH', params: { read } }),
   adminSetCarOrderStatus: (id, status) => request(`/admin/car-orders/${id}/status`, { method: 'PATCH', body: { status } }),
   adminSetListingActive: (id, active) => request(`/admin/listings/${id}/active`, { method: 'PATCH', params: { active } }),
 }

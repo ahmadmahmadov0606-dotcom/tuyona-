@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.config import get_settings
 from app.db import Base, engine, migrate_phone_to_email
-from app.routers import admin, assistant, auth, bookings, car_orders, catalog, listings, me, tryon
+from app.routers import admin, assistant, auth, bookings, car_orders, catalog, feedback, listings, me, tryon
 
 log = logging.getLogger("tuyona")
 settings = get_settings()
@@ -59,7 +59,7 @@ async def integrity_handler(_: Request, exc: IntegrityError):
 
 
 API = "/api"
-for r in (auth.router, catalog.router, listings.router, bookings.router, me.router, admin.router, car_orders.router, tryon.router, assistant.router):
+for r in (auth.router, catalog.router, listings.router, bookings.router, me.router, admin.router, car_orders.router, tryon.router, assistant.router, feedback.router):
     app.include_router(r, prefix=API)
 
 

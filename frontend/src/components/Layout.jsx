@@ -77,6 +77,7 @@ function Header() {
 }
 
 function Footer() {
+  const loc = useLocation()
   return (
     <footer className="footer">
       <div className="footer-wave" aria-hidden="true" />
@@ -94,6 +95,7 @@ function Footer() {
           <Link to="/search?group=transport">Мошини арӯс</Link>
           <Link to="/harita">Харитаи хизматҳо</Link>
           <Link to="/qonun">Қонуни танзими ҷашну маросим</Link>
+          <Link to="/fikr" state={{ from: loc.pathname }}>Фикру пешниҳод</Link>
         </div>
         <p className="footer-copy small">© {new Date().getFullYear()} Тӯёна. Бо муҳаббат дар Тоҷикистон сохта шуд.
           {' '}· <Link to="/aksho">Аксҳо: Wikimedia Commons (CC BY / CC BY-SA)</Link></p>

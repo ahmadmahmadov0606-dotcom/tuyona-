@@ -4,6 +4,7 @@ import { api } from '../../api'
 import { ErrorBox, Pager, Spinner, useToast } from '../../components/ui'
 import { carById } from '../../cars'
 import { BOOKING_STATUS, fmtDate, money, useAsync } from '../../utils'
+import { FEEDBACK_TOPICS } from '../Feedback'
 
 const ROLES = { client: 'Мизоҷ', vendor: 'Хизматрасон', admin: 'Маъмур' }
 
@@ -26,8 +27,12 @@ export default function Admin() {
         <button className={tab === 'listings' ? 'on' : ''} onClick={() => setTab('listings')}>Эълонҳо</button>
         <button className={tab === 'users' ? 'on' : ''} onClick={() => setTab('users')}>Корбарон</button>
         <button className={tab === 'cars' ? 'on' : ''} onClick={() => setTab('cars')}>Фармоиши мошинҳо</button>
+        <button className={tab === 'feedback' ? 'on' : ''} onClick={() => setTab('feedback')}>
+          Фикрҳо{s?.feedback_unread > 0 && <span className="badge badge-no fb-count">{s.feedback_unread}</span>}
+        </button>
       </div>
-      {tab === 'listings' ? <ListingsTable onChange={stats.reload} /> : tab === 'users' ? <UsersTable onChange={stats.reload} /> : <CarOrdersTable />}
+      {tab === 'listings' ? <ListingsTable onChange={stats.reload} /> : tab === 'users' ? <UsersTable onChange={stats.reload} />
+        : tab === 'cars' ? <CarOrdersTable /> : <FeedbackTable onChange={stats.reload} />}
     </div>
   )
 }
@@ -187,6 +192,50 @@ function CarOrdersTable() {
             </tbody>
           </table>
         </div>
+      )}
+      {res.data && <Pager page={page} size={20} total={res.data.total} onChange={setPage} />}
+    </section>
+  )
+}
+
+const TOPIC_NAMES = Object.fromEntries(FEEDBACK_TOPICS)
+
+function FeedbackTable({ onChange }) {
+  const toast = useToast()
+  const [unread, setUnread] = useState(false)
+  const [page, setPage] = useState(1)
+  const res = useAsync(() => api.adminFeedback({ unread: unread || undefined, page, size: 20 }), [unread, page])
+  const toggle = async (f) => {
+    try {
+      const nf = await api.adminSetFeedbackRead(f.id, !f.is_read)
+      res.setData({ ...res.data, items: res.data.items.map((x) => (x.id === nf.id ? nf : x)) })
+      onChange()
+    } catch (e) { toast(e.message, 'err') }
+  }
+  return (
+    <section className="box">
+      <div className="seg">
+        <button className={!unread ? 'on' : ''} onClick={() => { setUnread(false); setPage(1) }}>Ҳама</button>
+        <button className={unread ? 'on' : ''} onClick={() => { setUnread(true); setPage(1) }}>Хонданашуда</button>
+      </div>
+      <ErrorBox error={res.error} />
+      {res.loading ? <Spinner /> : !res.data.items.length ? <p className="muted">Ҳоло фикр нест.</p> : (
+        <ul className="fb-list">
+          {res.data.items.map((f) => (
+            <li key={f.id} className={f.is_read ? 'read' : ''}>
+              <div className="fb-meta">
+                <span className={`badge ${f.topic === 'bug' ? 'badge-no' : 'badge-ok'}`}>{TOPIC_NAMES[f.topic] || f.topic}</span>
+                {f.rating && <span className="fb-stars" aria-label={`${f.rating} ситора`}>{'★'.repeat(f.rating)}</span>}
+                <span className="muted small">{fmtDate(f.created_at)}{f.page && ` · ${f.page}`}</span>
+              </div>
+              <p className="fb-msg">{f.message}</p>
+              <div className="fb-meta">
+                <span className="small"><b>{f.name || 'Номаълум'}</b>{f.contact && ` · ${f.contact}`}</span>
+                <button className="btn btn-ghost btn-sm" onClick={() => toggle(f)}>{f.is_read ? 'Хонданашуда' : 'Хонда шуд ✓'}</button>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
       {res.data && <Pager page={page} size={20} total={res.data.total} onChange={setPage} />}
     </section>

@@ -14,6 +14,7 @@ import ListingForm from './pages/vendor/ListingForm'
 import Admin from './pages/admin/Admin'
 import Law from './pages/Law'
 import PhotoCredits from './pages/PhotoCredits'
+import Feedback from './pages/Feedback'
 import MapPage from './pages/MapPage'
 import Fitting from './pages/Fitting'
 import CarPage from './pages/CarPage'
@@ -43,6 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <Route path="oroishgoh" element={<Fitting />} />
               <Route path="moshin/:id" element={<CarPage />} />
               <Route path="aksho" element={<PhotoCredits />} />
+              <Route path="fikr" element={<Feedback />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="favorites" element={<RequireAuth><Favorites /></RequireAuth>} />

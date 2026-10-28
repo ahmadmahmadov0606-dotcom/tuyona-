@@ -5,7 +5,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.deps import DB, CurrentUser
-from app.models import Booking, BookingStatus, Listing, Role, User
+from app.models import Booking, BookingStatus, Feedback, Listing, Role, User
 from app.routers.listings import LOAD as LISTING_LOAD
 from app.schemas import AdminStats, AdminUserOut, ListingCard, Page
 
@@ -34,6 +34,7 @@ def stats(_: AdminUser, db: DB):
         bookings_confirmed=cnt(
             select(func.count(Booking.id)).where(Booking.status == BookingStatus.confirmed)
         ),
+        feedback_unread=cnt(select(func.count(Feedback.id)).where(Feedback.is_read.is_(False))),
     )
 
 

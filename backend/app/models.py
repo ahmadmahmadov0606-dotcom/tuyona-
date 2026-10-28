@@ -238,3 +238,19 @@ class CarOrder(Base):
     @property
     def car_ids(self) -> list[str]:
         return [c for c in self.cars.split(",") if c]
+
+
+class Feedback(Base):
+    """Фикру пешниҳоди корбарон дар бораи сайт (саҳифаи /fikr). Маъмур дар панели админ мехонад."""
+    __tablename__ = "feedback"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    topic: Mapped[str] = mapped_column(String(20), default="idea")  # idea | bug | praise | other
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    message: Mapped[str] = mapped_column(Text)
+    name: Mapped[str] = mapped_column(String(120), default="")
+    contact: Mapped[str] = mapped_column(String(120), default="")
+    page: Mapped[str] = mapped_column(String(200), default="")
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

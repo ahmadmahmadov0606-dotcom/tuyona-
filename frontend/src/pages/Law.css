@@ -15,8 +15,8 @@
   text-shadow: 0 6px 30px rgba(0, 0, 0, .5); }
 .lw-sub { max-width: 680px; margin: 0 auto; font-size: 1.08rem; color: var(--lw-text); }
 .lw-sub b { color: var(--lw-gold-light); }
-.lw-orn { display: block; width: 200px; height: 20px; margin: 18px auto 22px; color: var(--lw-gold); }
-.lw-orn-left { margin: 6px 0 14px; width: 160px; }
+.ornament.lw-orn { display: block; width: 200px; height: 20px; margin: 18px auto 22px; color: var(--lw-gold); }
+.ornament.lw-orn-left { margin: 6px 0 14px; width: 160px; }
 .lw-stats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .lw-stats li { min-width: 130px; padding: 12px 20px; border-radius: 18px; background: rgba(255, 255, 255, .05); border: 1px solid var(--lw-line); }
 .lw-stats b { display: block; font-family: var(--serif); font-size: 2.3rem; line-height: 1; background: var(--lw-gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -95,8 +95,10 @@
 .lw-glass h2 { margin: 0; font-family: var(--serif); font-size: 2rem; font-weight: 600; color: #fff8ee; }
 .lw-banned h3 { margin: 18px 0 10px; font-size: .78rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--lw-gold); }
 .lw-bans { display: flex; flex-wrap: wrap; gap: 8px; }
-.lw-bans span { padding: 6px 13px; border-radius: 999px; font-size: .9rem; font-weight: 600; color: #ffd0d6; background: rgba(220, 70, 90, .14);
-  border: 1px solid rgba(255, 154, 168, .3); text-decoration: line-through; text-decoration-color: rgba(255, 154, 168, .6); }
+.lw-bans span { padding: 7px 15px; border-radius: 999px; font-size: .92rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #e0344f 0%, #b3123a 100%); border: 1px solid #ff8a9c;
+  box-shadow: 0 0 0 1px rgba(255, 60, 90, .25), 0 6px 18px -6px rgba(255, 40, 80, .7);
+  text-decoration: line-through; text-decoration-color: #ffe3e7; text-decoration-thickness: 2px; text-shadow: 0 1px 2px rgba(80, 0, 20, .5); }
 .lw-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
 .lw-cta p { margin: 6px 0 0; color: var(--lw-soft); }
 .lw-disclaimer { max-width: 760px; margin: 26px auto 0; text-align: center; font-size: .9rem; color: var(--lw-soft); }
