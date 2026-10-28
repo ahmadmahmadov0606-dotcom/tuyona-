@@ -42,6 +42,11 @@ class RegisterIn(BaseModel):
     role: Role = Role.client
 
 
+class GoogleLoginIn(BaseModel):
+    credential: str = Field(min_length=20, max_length=4096)  # ID token аз Google Identity Services
+    role: Role = Role.client  # танҳо барои ҳисоби нав
+
+
 class LoginIn(BaseModel):
     email: Email
     password: str = Field(min_length=1, max_length=72)

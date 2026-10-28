@@ -417,6 +417,10 @@ select option:disabled { color: rgba(246, 239, 227, .4); }
   animation: seal-drop 1.3s .6s var(--ease) both; }
 @keyframes seal-drop { from { opacity: 0; scale: 2; rotate: -30deg; } }
 .auth-card > .field, .auth-card > .row2, .auth-card > .role-switch, .auth-card > .btn, .auth-card > p { animation: page-in .7s var(--ease) both; animation-delay: .7s; }
+/* Воридшавӣ бо Google */
+.auth-or { display: flex; align-items: center; gap: 12px; margin: 14px 0 10px; font-size: .82rem; color: var(--ink-2); }
+.auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--gold-2) 40%, transparent); }
+.google-btn { display: flex; justify-content: center; min-height: 44px; color-scheme: normal; }
 .role-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 18px; perspective: 600px; }
 .role-switch button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px; border-radius: 16px;
   border: 1.5px solid var(--line); background: var(--surface); cursor: pointer; text-align: left; transition: transform .5s var(--ease), border-color .2s, background .2s; }

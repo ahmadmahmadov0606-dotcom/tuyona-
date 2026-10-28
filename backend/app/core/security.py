@@ -19,6 +19,27 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+GOOGLE_CERTS = "https://www.googleapis.com/oauth2/v3/certs"
+GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
+_google_keys: jwt.PyJWKClient | None = None
+
+
+def verify_google_token(token: str) -> dict:
+    """ID token-и Google-ро месанҷад: имзо (калидҳои ҷамъиятии Google), муҳлат, aud = GOOGLE_CLIENT_ID,
+    iss ва тасдиқ будани email. Хатогӣ — jwt.PyJWTError."""
+    global _google_keys
+    if _google_keys is None:
+        _google_keys = jwt.PyJWKClient(GOOGLE_CERTS, cache_keys=True, timeout=10)
+    key = _google_keys.get_signing_key_from_jwt(token).key
+    claims = jwt.decode(token, key, algorithms=["RS256"], audience=get_settings().google_client_id,
+                        options={"require": ["exp", "iat", "iss", "aud", "email"]})
+    if claims["iss"] not in GOOGLE_ISSUERS:
+        raise jwt.InvalidIssuerError("Not issued by Google")
+    if claims.get("email_verified") is not True:
+        raise jwt.InvalidTokenError("Google email is not verified")
+    return claims
+
+
 def create_access_token(user_id: int, role: str) -> str:
     s = get_settings()
     now = datetime.now(timezone.utc)

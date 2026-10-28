@@ -1,11 +1,14 @@
+import secrets
+
+import jwt
 from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.core.security import RateLimiter, create_access_token, hash_password, verify_password
+from app.core.security import RateLimiter, create_access_token, hash_password, verify_google_token, verify_password
 from app.deps import DB, CurrentUser
 from app.models import Role, User
-from app.schemas import LoginIn, RegisterIn, TokenOut, UserOut, UserUpdate
+from app.schemas import GoogleLoginIn, LoginIn, RegisterIn, TokenOut, UserOut, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -45,6 +48,45 @@ def login(data: LoginIn, db: DB, request: Request):
     user = db.scalar(select(User).where(User.email == data.email))
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email ё парол нодуруст аст")
+    if not user.is_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Ҳисоб баста шудааст")
+    return _token(user)
+
+
+@router.get("/config")
+def auth_config():
+    """Танзимоти воридшавӣ барои frontend (бе сохтани аз нав): Client ID-и Google ё null."""
+    return {"google_client_id": get_settings().google_client_id or None}
+
+
+@router.post("/google", response_model=TokenOut)
+def google_login(data: GoogleLoginIn, db: DB, request: Request):
+    """Воридшавӣ бо Google: ID token санҷида мешавад; агар бо ин email ҳисоб набошад — сохта мешавад."""
+    if not get_settings().google_client_id:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Воридшавӣ бо Google фаъол нест")
+    if data.role == Role.admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Нақши admin иҷозат нест")
+    ip = request.client.host if request.client else "unknown"
+    if not login_limiter.allow(f"{ip}:google"):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Кӯшишҳо зиёд шуданд, як дақиқа сабр кунед")
+    try:
+        claims = verify_google_token(data.credential)
+    except jwt.PyJWTError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Воридшавӣ бо Google тасдиқ нашуд. Боз кӯшиш кунед.")
+    email = claims["email"].strip().lower()
+    user = db.scalar(select(User).where(User.email == email))
+    if not user:
+        name = (claims.get("name") or email.split("@")[0]).strip()[:120]
+        user = User(
+            email=email,
+            full_name=name if len(name) >= 2 else email.split("@")[0][:120],
+            # Парол намедонад — танҳо бо Google ворид мешавад (пароли тасодуфӣ, ки касе намедонад)
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+            role=data.role,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Ҳисоб баста шудааст")
     return _token(user)

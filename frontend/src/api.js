@@ -120,6 +120,8 @@ export const api = {
   // auth
   register: (b) => request('/auth/register', { method: 'POST', body: b }),
   login: (b) => request('/auth/login', { method: 'POST', body: b }),
+  googleLogin: (b) => request('/auth/google', { method: 'POST', body: b }),
+  authConfig: () => request('/auth/config'),
   me: () => request('/auth/me'),
   updateMe: (b) => request('/auth/me', { method: 'PATCH', body: b }),
   // catalog

@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
     user, ready, setUser, logout,
     login: async (email, password) => accept(await api.login({ email, password })),
     register: async (data) => accept(await api.register(data)),
+    googleLogin: async (credential, role) => accept(await api.googleLogin({ credential, role })),
     isVendor: user?.role === 'vendor' || user?.role === 'admin',
     isAdmin: user?.role === 'admin',
   }), [user, ready, logout, accept])

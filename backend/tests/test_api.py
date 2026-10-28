@@ -341,3 +341,50 @@ def test_tryon_gender_rules(client, user, vendor, ref, monkeypatch):
     r = client.post("/api/tryon/detect", files={"photo": ("p.png", _png(), "image/png")})
     assert r.json() == {"gender": "female", "confidence": 0.88}
     assert tryon_router.SCENE_PHOTOS  # эълонҳои манзара аз каталог берунанд
+
+
+# ---------- Воридшавӣ бо Google ----------
+def test_google_login(client, monkeypatch):
+    import time
+    import jwt
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from app.core import security
+    from app.core.config import get_settings
+
+    google_key, fake_key = (rsa.generate_private_key(public_exponent=65537, key_size=2048) for _ in range(2))
+
+    class Keys:  # ба ҷои калидҳои ҷамъиятии Google
+        def get_signing_key_from_jwt(self, token):
+            return type("K", (), {"key": google_key.public_key()})()
+
+    monkeypatch.setattr(security, "_google_keys", Keys())
+    assert client.get("/api/auth/config").json() == {"google_client_id": None}
+    assert client.post("/api/auth/google", json={"credential": "x" * 30}).status_code == 503
+    monkeypatch.setattr(get_settings(), "google_client_id", "test-client.apps.googleusercontent.com")
+    assert client.get("/api/auth/config").json()["google_client_id"] == "test-client.apps.googleusercontent.com"
+
+    def token(key=google_key, **over):
+        now = int(time.time())
+        claims = {"iss": "https://accounts.google.com", "aud": "test-client.apps.googleusercontent.com", "iat": now,
+                  "exp": now + 600, "email": "Zarina@Gmail.com", "email_verified": True, "name": "Зарина Каримова", **over}
+        return jwt.encode(claims, key, algorithm="RS256")
+
+    login = lambda t, **b: client.post("/api/auth/google", json={"credential": t, **b})
+    # Ҳисоби нав сохта мешавад (email — бо ҳарфи хурд), нақш — фармоишгар ё хизматрасон
+    r = login(token(), role="vendor")
+    assert r.status_code == 200, r.text
+    me = r.json()["user"]
+    assert me["email"] == "zarina@gmail.com" and me["full_name"] == "Зарина Каримова" and me["role"] == "vendor"
+    # Бори дуюм — ҳамон ҳисоб, нақш тағйир намеёбад
+    again = login(token(), role="client").json()["user"]
+    assert again["id"] == me["id"] and again["role"] == "vendor"
+    # Токенҳои нодуруст
+    assert login(token(aud="someone-else")).status_code == 401
+    assert login(token(email_verified=False)).status_code == 401
+    assert login(token(iss="https://evil.example")).status_code == 401
+    assert login(token(exp=int(time.time()) - 10)).status_code == 401
+    assert login(token(key=fake_key)).status_code == 401
+    assert login(token(), role="admin").status_code == 403
+    # Ҳисоби мавҷуда бо парол — бо Google ҳам ворид мешавад
+    register(client, "ali@gmail.com")
+    assert login(token(email="ali@gmail.com")).json()["user"]["full_name"] == "Тест Корбар"

@@ -4,6 +4,7 @@ import { useAuth } from '../auth'
 import { Ornament, Rings3D } from '../components/fx'
 import { ErrorBox, useToast } from '../components/ui'
 import Icon from '../components/Icon'
+import GoogleButton from '../components/GoogleButton'
 
 function AuthScene({ children }) {
   return (
@@ -66,6 +67,7 @@ export function Login() {
         </label>
         <ErrorBox error={err} />
         <button className="btn btn-primary btn-block btn-lg" disabled={busy}>{busy ? '…' : 'Ворид шудан'}</button>
+        <GoogleButton onDone={(u) => nav(safeNext(sp, u.role === 'vendor' ? '/vendor' : '/'), { replace: true })} />
         <p className="center small">Ҳисоб надоред? <Link to={`/register${sp.get('next') ? `?next=${encodeURIComponent(sp.get('next'))}` : ''}`}>Сабти ном</Link></p>
       </form>
     </AuthScene>
@@ -126,6 +128,7 @@ export function Register() {
         </div>
         <ErrorBox error={err} />
         <button className="btn btn-primary btn-block btn-lg" disabled={busy}>{busy ? '…' : 'Сохтани ҳисоб'}</button>
+        <GoogleButton role={f.role} onDone={(u) => { toast('Хуш омадед!'); nav(u.role === 'vendor' ? '/vendor' : safeNext(sp, '/'), { replace: true }) }} />
         <p className="center small">Ҳисоб доред? <Link to="/login">Ворид шавед</Link></p>
       </form>
     </AuthScene>

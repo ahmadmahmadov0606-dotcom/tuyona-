@@ -28,6 +28,10 @@ class Settings(BaseSettings):
 
     login_attempts_per_minute: int = 10
 
+    # Воридшавӣ бо Google: OAuth Client ID (Web) аз https://console.cloud.google.com/apis/credentials
+    # Бе он тугмаи Google нишон дода намешавад.
+    google_client_id: str = ""
+
     # Ороишгоҳи AI (/oroishgoh): бо FASHN_API_KEY — FASHN (пулакӣ, тез); бе он — модели ройгони Hugging Face.
     fashn_api_key: str = ""
     fashn_api_url: str = "https://api.fashn.ai"

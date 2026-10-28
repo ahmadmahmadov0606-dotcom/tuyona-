@@ -33,6 +33,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       HF_TOKEN: ${HF_TOKEN:-}
       FASHN_API_KEY: ${FASHN_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     volumes: [uploads:/srv/backend/uploads]
     depends_on:
       db: { condition: service_healthy }
