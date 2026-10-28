@@ -48,11 +48,11 @@ export const CATEGORY_CREDITS = [
   {
     "slug": "food",
     "category": "Хӯрок",
-    "title": "Oshi palov tajik.jpg",
-    "author": "Ibrahimjon",
-    "license": "CC BY 2.5",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
-    "page": "https://commons.wikimedia.org/wiki/File:Oshi_palov_tajik.jpg"
+    "title": "Таджикский плов с бараниной и перепелиными яйцами.jpg",
+    "author": "Anastasiya Lvova",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B0%D0%B4%D0%B6%D0%B8%D0%BA%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%BB%D0%BE%D0%B2_%D1%81_%D0%B1%D0%B0%D1%80%D0%B0%D0%BD%D0%B8%D0%BD%D0%BE%D0%B9_%D0%B8_%D0%BF%D0%B5%D1%80%D0%B5%D0%BF%D0%B5%D0%BB%D0%B8%D0%BD%D1%8B%D0%BC%D0%B8_%D1%8F%D0%B9%D1%86%D0%B0%D0%BC%D0%B8.jpg"
   },
   {
     "slug": "decor",

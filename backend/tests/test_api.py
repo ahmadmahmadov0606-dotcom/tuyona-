@@ -16,6 +16,9 @@ def test_register_login_me(client):
     r = client.post("/api/auth/login", json={"email": "ali@mail.com", "password": "secret123"})
     assert r.status_code == 200
     assert client.post("/api/auth/login", json={"email": "ali@mail.com", "password": "bad"}).status_code == 401
+    r = client.post("/api/auth/login", json={"email": "nobody@mail.com", "password": "secret123"})
+    assert r.status_code == 401 and "ҳисоб нест" in r.json()["detail"]
+    assert client.post("/api/auth/login", json={"email": "ali@mail.com", "password": "bad"}).json()["detail"] == "Парол нодуруст аст"
 
 
 def test_duplicate_email_and_bad_email(client):

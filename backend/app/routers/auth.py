@@ -46,8 +46,11 @@ def login(data: LoginIn, db: DB, request: Request):
     if not login_limiter.allow(f"{ip}:{data.email}"):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Кӯшишҳо зиёд шуданд, як дақиқа сабр кунед")
     user = db.scalar(select(User).where(User.email == data.email))
-    if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email ё парол нодуруст аст")
+    # Сабти ном аллакай мегӯяд, ки email банд аст — пинҳон кардани он ҳимоя намедиҳад, вале корбарро ошуфта мекунад
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Бо ин email ҳисоб нест. Email-ро санҷед ё сабти ном кунед.")
+    if not verify_password(data.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Парол нодуруст аст")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Ҳисоб баста шудааст")
     return _token(user)

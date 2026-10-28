@@ -29,6 +29,18 @@ function InviteHead({ title, sub }) {
   )
 }
 
+/** Майдони парол бо тугмаи 👁 — корбар хатои навиштанро мебинад */
+function PasswordInput(props) {
+  const [show, setShow] = useState(false)
+  return (
+    <span className="pw-wrap">
+      <input {...props} type={show ? 'text' : 'password'} />
+      <button type="button" className="pw-eye" onClick={() => setShow(!show)} aria-label={show ? 'Пинҳон кардани парол' : 'Нишон додани парол'}
+        aria-pressed={show} tabIndex={-1}>{show ? '🙈' : '👁'}</button>
+    </span>
+  )
+}
+
 function safeNext(sp, fallback) {
   const n = sp.get('next')
   return n && n.startsWith('/') && !n.startsWith('//') ? n : fallback
@@ -63,7 +75,7 @@ export function Login() {
         </label>
         <label className="field">
           <span>Парол</span>
-          <input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         <ErrorBox error={err} />
         <button className="btn btn-primary btn-block btn-lg" disabled={busy}>{busy ? '…' : 'Ворид шудан'}</button>
@@ -119,11 +131,11 @@ export function Register() {
         <div className="row2">
           <label className="field">
             <span>Парол</span>
-            <input type="password" required minLength={6} maxLength={72} value={f.password} onChange={set('password')} autoComplete="new-password" />
+            <PasswordInput required minLength={6} maxLength={72} value={f.password} onChange={set('password')} autoComplete="new-password" />
           </label>
           <label className="field">
             <span>Такрори парол</span>
-            <input type="password" required value={f.password2} onChange={set('password2')} autoComplete="new-password" />
+            <PasswordInput required value={f.password2} onChange={set('password2')} autoComplete="new-password" />
           </label>
         </div>
         <ErrorBox error={err} />
