@@ -3,11 +3,11 @@ export const CATEGORY_CREDITS = [
   {
     "slug": "venue",
     "category": "Ҷой",
-    "title": "Dushanbe, Tajikistan - panoramio (60).jpg",
-    "author": "Hansjoerg Eberle",
-    "license": "CC BY 3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-    "page": "https://commons.wikimedia.org/wiki/File:Dushanbe,_Tajikistan_-_panoramio_(60).jpg"
+    "title": "Ресторан \"Яккасарой \" в Душанбе.jpg",
+    "author": "Шухрат Саъдиев",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:%D0%A0%D0%B5%D1%81%D1%82%D0%BE%D1%80%D0%B0%D0%BD_%22%D0%AF%D0%BA%D0%BA%D0%B0%D1%81%D0%B0%D1%80%D0%BE%D0%B9_%22_%D0%B2_%D0%94%D1%83%D1%88%D0%B0%D0%BD%D0%B1%D0%B5.jpg"
   },
   {
     "slug": "bride",
@@ -62,6 +62,15 @@ export const CATEGORY_CREDITS = [
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "page": "https://commons.wikimedia.org/wiki/File:Wedding_ceremonies_in_Tajikistan_10.jpg"
+  },
+  {
+    "slug": "planning",
+    "category": "Ташкили тӯй",
+    "title": "Ресторан \"Шохсарой\" в г. Душанбе 10.jpg",
+    "author": "Шухрат Саъдиев",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:%D0%A0%D0%B5%D1%81%D1%82%D0%BE%D1%80%D0%B0%D0%BD_%22%D0%A8%D0%BE%D1%85%D1%81%D0%B0%D1%80%D0%BE%D0%B9%22_%D0%B2_%D0%B3._%D0%94%D1%83%D1%88%D0%B0%D0%BD%D0%B1%D0%B5_10.jpg"
   },
   {
     "slug": "other",

@@ -4,10 +4,12 @@
 
 Ба ҳар эълони бе акс аксҳои мувофиқ бор мешаванд (uploads/, то 1600px); муаллиф ва иҷозатнома
 дар тавсифи эълон навишта мешавад. Мошинҳо аз аксҳои худи лоиҳа (frontend/public/cars) гирифта мешаванд.
-Бори дуюм иҷро кардан бехатар аст: эълонҳое, ки акс доранд, дигар тағйир намеёбанд.
+Бори дуюм иҷро кардан бехатар аст: агар аксҳои эълон аз рӯйхати PHOTOS фарқ кунанд (рӯйхат иваз шуд),
+аксҳои кӯҳна ва қайди муаллифонашон бо аксҳои нав иваз мешаванд; вагарна эълон бетағйир мемонад.
 """
 import time
 import urllib.error
+import urllib.parse
 import uuid
 from pathlib import Path
 
@@ -25,25 +27,24 @@ CARS_DIR = next((d for d in (_FRONTEND / "public" / "cars" / "optimized", _FRONT
 
 # номи эълон → файлҳо дар Commons (ё "car:XX" — акси мошин аз лоиҳа)
 PHOTOS = {
-    "Тӯйхонаи «Ориёно»": [
-        "File:Wedding ceremonies in Tajikistan 05.jpg",
-        'File:Ресторан "Джавонон" в г.Душанбе.jpg',
-        "File:Wedding ceremonies in Tajikistan 04.jpg",
-    ],
-    "Тӯйхонаи «Наврӯз»": [
-        "File:Kokhi Navruz.jpg",
-        'File:Ресторан "Шохсарой" в г. Душанбе 9.jpg',
+    # Тӯйхонаҳо — аксҳои як тарабхонаи воқеии Душанбе барои ҳар эълон (на аксҳои тасодуфии тӯй)
+    "Тӯйхонаи «Ориёно»": [  # тарабхонаи «Шоҳсарой»
+        'File:Ресторан "Шохсарой" в г. Душанбе 4.jpg',
         'File:Ресторан "Шохсарой" в г. Душанбе 2.jpg',
+        'File:Ресторан "Шохсарой" в г. Душанбе 1.jpg',
     ],
-    "Ресторани «Сомон Палас»": [
+    "Тӯйхонаи «Наврӯз»": [  # тарабхонаи «Ҷавонон»
+        'File:Ресторан "Джавонон" в г.Душанбе.jpg',
+        'File:Ресторан "Джавонон" в г .Душанбе 02.jpg',
+    ],
+    "Ресторани «Сомон Палас»": [  # тарабхонаи «Дидор»
         'File:Ресторан "Дидор" в г.Душанбе 01.jpg',
         'File:Ресторан "Дидор" в г.Душанбе.jpg',
-        'File:Ресторан "Яккасарой " в Душанбе.jpg',
     ],
-    "Толори «Дастархон» барои ош": [
+    "Толори «Дастархон» барои ош": [  # чойхонаи «Роҳат»
         "File:Chaykhona Rohat (18).jpg",
         "File:Tea House Rohat, Dushanbe, Tajikistan 8.jpg",
-        'File:Праздничный дастархан, Праздник "Навруз", Таджикистан.jpg',
+        "File:Tea House Rohat, Dushanbe, Tajikistan 2.jpg",
     ],
     "BMW 7 Series барои арӯс": ["car:01", "car:02"],
     "Mercedes S-Class бо ронанда": ["car:08", "car:03"],
@@ -118,13 +119,33 @@ def _save(data: bytes) -> str:
     return f"/uploads/{name}"
 
 
+def _up_to_date(listing, files) -> bool:
+    """Аксҳои эълон ба рӯйхат мувофиқанд: шумора баробар ва ҳар файли Commons дар қайди муаллифон ҳаст."""
+    if len(listing.images) != len(files):
+        return False
+    credits = urllib.parse.unquote(listing.description or "")
+    return all(f[5:].replace(" ", "_") in credits for f in files if not f.startswith("car:"))
+
+
+def _clear(listing):
+    """Аксҳои кӯҳна (файлҳо ва сатрҳо) ва қайди муаллифони онҳоро нест мекунад."""
+    for image in list(listing.images):
+        (get_settings().upload_dir / image.url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
+        listing.images.remove(image)
+    lines = (listing.description or "").rstrip().split("\n")
+    listing.description = "\n".join(line for line in lines if not line.startswith("Акс: ")).rstrip()
+
+
 def run():
     db = SessionLocal()
     added = 0
     for title, files in PHOTOS.items():
         listing = db.scalar(select(Listing).where(Listing.title == title))
-        if not listing or listing.images:
+        if not listing or (listing.images and _up_to_date(listing, files)):
             continue
+        if listing.images:
+            _clear(listing)
+            db.flush()
         credits = []
         for sort, file in enumerate(files):
             if file.startswith("car:"):

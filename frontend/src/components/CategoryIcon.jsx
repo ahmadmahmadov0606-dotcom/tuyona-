@@ -19,6 +19,8 @@ const ICONS = {
   food: <><path pathLength="1" d="M4.5 16.5a7.5 7.5 0 0 1 15 0" /><path pathLength="1" d="M3 16.5h18M4 19.5h16" /><path pathLength="1" d="M12 9V6.5M10.5 6.5h3" /></>,
   // Ороиш — гул
   decor: <><circle pathLength="1" cx="12" cy="5.6" r="2.3" /><circle pathLength="1" cx="15.4" cy="9" r="2.3" /><circle pathLength="1" cx="12" cy="12.4" r="2.3" /><circle pathLength="1" cx="8.6" cy="9" r="2.3" /><path pathLength="1" d="M12 14.7v6.8M12 18c-2-2-4-2.2-5.2-1.2 1.2 2 3.2 2.2 5.2 1.2zM12 17c2-2 4-2.2 5.2-1.2-1.2 2-3.2 2.2-5.2 1.2z" /></>,
+  // Ташкили тӯй — рӯйхати корҳо
+  planning: <><path pathLength="1" d="M6 4.5h12v16H6z" /><path pathLength="1" d="M9.5 3h5v3h-5z" /><path pathLength="1" d="M8.5 10.5l1.2 1.2 2-2.2M13.5 11h2.5M8.5 15.5l1.2 1.2 2-2.2M13.5 16h2.5" /></>,
   // Дигар — лифофа бо мӯҳр
   other: <><path pathLength="1" d="M3 6h18v12H3z" /><path pathLength="1" d="M3 6l9 7 9-7" /><circle pathLength="1" cx="12" cy="14.5" r="2.2" /></>,
   // Ҳамаи хизматҳо — ду ангуштарин
