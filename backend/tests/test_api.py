@@ -388,3 +388,10 @@ def test_google_login(client, monkeypatch):
     # Ҳисоби мавҷуда бо парол — бо Google ҳам ворид мешавад
     register(client, "ali@gmail.com")
     assert login(token(email="ali@gmail.com")).json()["user"]["full_name"] == "Тест Корбар"
+
+
+def test_no_law_banned_categories(client):
+    # Қонуни №2048: ҷаҳиз (сандуқбарон, сарупобинон) ва табақҳои тӯҳфа — категория надоранд
+    groups = client.get("/api/categories").json()
+    slugs = {g["slug"] for g in groups} | {c["slug"] for g in groups for c in g["categories"]}
+    assert not slugs & {"dowry", "bedding", "furniture", "tabaq"}

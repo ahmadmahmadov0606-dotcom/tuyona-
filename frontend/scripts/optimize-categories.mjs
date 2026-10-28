@@ -12,7 +12,7 @@ const GEN = path.resolve('src/components/categoryPhotos.gen.js')
 // номи файл → slug-и гурӯҳ дар база
 const FILES = {
   venue: 'venue', transport: 'transport', bride: 'bride', groom: 'groom', program: 'program',
-  photo: 'media', food: 'food', decor: 'decor', gifts: 'dowry', other: 'other',
+  photo: 'media', food: 'food', decor: 'decor', other: 'other',
 }
 
 await mkdir(OUT, { recursive: true })

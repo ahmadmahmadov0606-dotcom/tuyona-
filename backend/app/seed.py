@@ -23,7 +23,7 @@ CITIES = [
 CATEGORIES = [
     ("venue", "Ҷой", "🏛", [
         ("tuykhona", "Тӯйхона ва ресторан", "🏛"),
-        ("small-hall", "Толори хурд (ош, хостгорӣ)", "🍽"),
+        ("small-hall", "Толори хурд (оши тӯй)", "🍽"),
         ("garden", "Ҳавлӣ ва боғ", "🌳"),
     ]),
     ("transport", "Нақлиёт", "🚗", [
@@ -60,7 +60,6 @@ CATEGORIES = [
         ("oshpaz", "Ошпаз (оши наҳор)", "🍚"),
         ("cake", "Торт", "🎂"),
         ("dastarkhan", "Дастархон ва ширинӣ", "🍬"),
-        ("tabaq", "Табақ барои арӯсу домод", "🧺"),
     ]),
     ("decor", "Ороиш", "💐", [
         ("hall-decor", "Ороиши толор", "✨"),
@@ -68,15 +67,16 @@ CATEGORIES = [
         ("arch", "Арк ва нишастгоҳи арӯс", "🌸"),
         ("balloons", "Пуфакҳо", "🎈"),
     ]),
-    ("dowry", "Ҷаҳиз ва тӯҳфа", "🎁", [
-        ("bedding", "Сандуқ, кӯрпа, болишт", "🛏"),
-        ("furniture", "Мебел ва асбоби рӯзгор", "🛋"),
-    ]),
     ("other", "Дигар", "✉️", [
         ("invitations", "Даъватнома", "✉️"),
         ("rentals", "Иҷораи миз, курсӣ, хайма", "⛺"),
     ]),
 ]
+
+# Хилофи Қонуни ҶТ №2048 (моддаи 12): «Сандуқбарон», «Сарупобинон», «Фотиҳа», «Ноншиканон», «Идонабарӣ» манъанд —
+# категорияҳои ҷаҳиз ва табақҳои тӯҳфа аз базаҳои мавҷуда ҳам хориҷ мешаванд (агар эълон надошта бошанд).
+REMOVED_CATEGORIES = ["tabaq", "bedding", "furniture"]
+REMOVED_GROUPS = ["dowry"]
 
 DEMO = {
     "tuykhona": [("Тӯйхонаи «Ориёно»", 250, PriceUnit.person, 600), ("Тӯйхонаи «Наврӯз»", 180, PriceUnit.person, 400),
@@ -110,8 +110,20 @@ def seed_reference(db: Session):
             db.add(group)
             db.flush()
         for ci, (cslug, cname, cicon) in enumerate(cats):
-            if not db.scalar(select(Category).where(Category.slug == cslug)):
+            cat = db.scalar(select(Category).where(Category.slug == cslug))
+            if not cat:
                 db.add(Category(group_id=group.id, slug=cslug, name=cname, icon=cicon, sort=ci))
+            elif cat.name != cname:
+                cat.name = cname
+    for slug in REMOVED_CATEGORIES:
+        cat = db.scalar(select(Category).where(Category.slug == slug))
+        if cat and not db.scalar(select(Listing.id).where(Listing.category_id == cat.id)):
+            db.delete(cat)
+    db.flush()
+    for slug in REMOVED_GROUPS:
+        group = db.scalar(select(CategoryGroup).where(CategoryGroup.slug == slug))
+        if group and not db.scalar(select(Category.id).where(Category.group_id == group.id)):
+            db.delete(group)
     db.commit()
 
 

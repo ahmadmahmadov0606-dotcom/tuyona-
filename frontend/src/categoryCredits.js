@@ -64,15 +64,6 @@ export const CATEGORY_CREDITS = [
     "page": "https://commons.wikimedia.org/wiki/File:Wedding_ceremonies_in_Tajikistan_10.jpg"
   },
   {
-    "slug": "dowry",
-    "category": "Ҷаҳиз ва тӯҳфа",
-    "title": "Suzane in Tajikistan.jpg",
-    "author": "Ilhoms",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "page": "https://commons.wikimedia.org/wiki/File:Suzane_in_Tajikistan.jpg"
-  },
-  {
     "slug": "other",
     "category": "Дигар",
     "title": "Ресторан \"Шохсарой\" в г. Душанбе 9.jpg",

@@ -13,7 +13,6 @@
 | Сурат ва видео (`photo.jpg`) | Wedding ceremonies in Tajikistan 05.jpg | Шухрат Саъдиев | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) | https://commons.wikimedia.org/wiki/File:Wedding_ceremonies_in_Tajikistan_05.jpg |
 | Хӯрок (`food.jpg`) | Oshi palov tajik.jpg | Ibrahimjon | [CC BY 2.5](https://creativecommons.org/licenses/by/2.5) | https://commons.wikimedia.org/wiki/File:Oshi_palov_tajik.jpg |
 | Ороиш (`decor.jpg`) | Wedding ceremonies in Tajikistan 10.jpg | Шухрат Саъдиев | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) | https://commons.wikimedia.org/wiki/File:Wedding_ceremonies_in_Tajikistan_10.jpg |
-| Ҷаҳиз ва тӯҳфа (`gifts.jpg`) | Suzane in Tajikistan.jpg | Ilhoms | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) | https://commons.wikimedia.org/wiki/File:Suzane_in_Tajikistan.jpg |
 | Дигар (`other.jpg`) | Ресторан "Шохсарой" в г. Душанбе 9.jpg | Шухрат Саъдиев | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) | https://commons.wikimedia.org/wiki/File:%D0%A0%D0%B5%D1%81%D1%82%D0%BE%D1%80%D0%B0%D0%BD_%22%D0%A8%D0%BE%D1%85%D1%81%D0%B0%D1%80%D0%BE%D0%B9%22_%D0%B2_%D0%B3._%D0%94%D1%83%D1%88%D0%B0%D0%BD%D0%B1%D0%B5_9.jpg |
 
 Тағйирот: андоза ва формат (WebP); дар сайт болои аксҳо пардаи рангаи бургундӣ гузошта мешавад.
