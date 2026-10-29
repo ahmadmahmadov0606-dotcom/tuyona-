@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { Ornament, useRevealAll } from './fx'
@@ -35,7 +35,17 @@ function Header() {
   const loc = useLocation()
   const nav = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-  useEffect(() => setOpen(false), [loc.pathname])
+  const [userOpen, setUserOpen] = useState(false)
+  const userBox = useRef(null)
+  useEffect(() => { setOpen(false); setUserOpen(false) }, [loc.pathname])
+  // Клик берун аз менюи ҳисоб ё Escape — пӯшида мешавад
+  useEffect(() => {
+    if (!userOpen) return undefined
+    const close = (e) => { if (e.type === 'keydown' ? e.key === 'Escape' : !userBox.current?.contains(e.target)) setUserOpen(false) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', close)
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close) }
+  }, [userOpen])
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 24)
     on()
@@ -55,14 +65,22 @@ function Header() {
           <NavLink to="/harita">Харита</NavLink>
           <NavLink to="/oroishgoh">Ороишгоҳ</NavLink>
           <NavLink to="/qonun">Қонуни тӯй</NavLink>
-          {user && <NavLink to="/favorites"><Icon name="heart" className="nav-ico" /> Интихобшуда</NavLink>}
-          {user && <NavLink to="/bookings">Бронҳои ман</NavLink>}
-          {isVendor && <NavLink to="/vendor">Кабинети хизматрасон</NavLink>}
-          {isAdmin && <NavLink to="/admin">Маъмур</NavLink>}
+          <NavLink to="/fikr" state={{ from: loc.pathname }}>Фикру пешниҳод</NavLink>
           {user ? (
-            <div className="nav-user">
-              <span className="avatar" title={user.full_name}>{user.full_name[0]}</span>
-              <button className="btn btn-ghost btn-sm" onClick={() => { logout(); nav('/') }}>Баромад</button>
+            // Пайвандҳои шахсӣ дар менюи ҳисоб — менюи боло барои корбари воридшуда ҳам як сатр мемонад
+            <div className="nav-user" ref={userBox}>
+              <button type="button" className="nav-user-btn" aria-haspopup="menu" aria-expanded={userOpen} onClick={() => setUserOpen(!userOpen)}>
+                <span className="avatar" aria-hidden="true">{user.full_name[0].toUpperCase()}</span>
+                <span className="nav-user-name">{user.full_name.split(' ')[0]}</span>
+                <span className="nav-caret" aria-hidden="true">▾</span>
+              </button>
+              <div className={`user-menu ${userOpen ? 'open' : ''}`} role="menu">
+                <NavLink to="/favorites" role="menuitem"><Icon name="heart" className="nav-ico" /> Интихобшуда</NavLink>
+                <NavLink to="/bookings" role="menuitem">Бронҳои ман</NavLink>
+                {isVendor && <NavLink to="/vendor" role="menuitem">Кабинети хизматрасон</NavLink>}
+                {isAdmin && <NavLink to="/admin" role="menuitem">Панели маъмур</NavLink>}
+                <button type="button" role="menuitem" className="user-menu-out" onClick={() => { logout(); nav('/') }}>Баромад</button>
+              </div>
             </div>
           ) : (
             <div className="nav-user">
