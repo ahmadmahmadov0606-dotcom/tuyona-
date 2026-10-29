@@ -228,7 +228,7 @@ export default function CarsShowroom({ allLink = true }) {
                 <span key={handCtl.swipe.id} className="cs-cam-arrow" aria-hidden="true">{handCtl.swipe.dir === 'left' ? '←' : '→'}</span>
               )}
               <span className="cs-cam-state"><i aria-hidden="true" />
-                {handCtl.status === 'loading' ? 'Камера ва модел бор мешаванд…' : handCtl.hand ? 'Ба рост/чап баред ё мисли руль тоб диҳед' : 'Кафи дастро ба камера нишон диҳед'}
+                {handCtl.status === 'loading' ? `Модели даст бор мешавад… ${handCtl.progress}%` : handCtl.hand ? 'Ба рост/чап баред ё мисли руль тоб диҳед' : 'Кафи дастро ба камера нишон диҳед'}
               </span>
             </div>
           </div>

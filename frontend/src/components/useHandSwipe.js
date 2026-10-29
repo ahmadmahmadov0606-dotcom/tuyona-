@@ -1,10 +1,45 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-// MediaPipe аз сервери худи сайт (public/mediapipe): аз Google/jsDelivr дар Тоҷикистон ~30 с бор мешуд.
-// Танҳо вақте ки корбар камераро фаъол кард, як бор (чанки алоҳида).
-const MP_FILES = { wasmLoaderPath: '/mediapipe/vision_wasm_internal.js', wasmBinaryPath: '/mediapipe/vision_wasm_internal.wasm' }
-const MODEL_URL = '/mediapipe/hand_landmarker.task'
+// MediaPipe танҳо вақте ки корбар камераро фаъол кард, як бор (чанки алоҳида). Модел (7.8 МБ) ва WASM (9.4 МБ):
+// аввал аз CDN (дар Тоҷикистон 5–10× тезтар аз сервери мо), агар нашуд — аз сервери худи сайт (public/mediapipe).
+const MP_VERSION = '0.10.14'
+const WASM_SOURCES = [`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`, '/mediapipe']
+const MODEL_SOURCES = ['https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', '/mediapipe/hand_landmarker.task']
+const STALL_MS = 10000 // манбаъ 10 с ҳеҷ байт надод — манбаи навбатӣ
 const GPU_WAIT_MS = 6000 // GPU баъзан овезон мешавад — баъд CPU
+
+/** Файлро бо фоизи пешрафт мегирад; агар манбаъ хомӯш монад — манбаи навбатӣ. */
+async function fetchBytes(urls, onProgress) {
+  let lastError
+  for (const url of urls) {
+    const ctrl = new AbortController()
+    let stall = setTimeout(() => ctrl.abort(), STALL_MS)
+    try {
+      const res = await fetch(url, { signal: ctrl.signal })
+      if (!res.ok || !res.body) throw new Error(`${url}: ${res.status}`)
+      const total = Number(res.headers.get('content-length')) || 0
+      const reader = res.body.getReader()
+      const parts = []
+      let got = 0
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        clearTimeout(stall); stall = setTimeout(() => ctrl.abort(), STALL_MS)
+        parts.push(value); got += value.length
+        if (total) onProgress?.(Math.min(99, Math.round((got / total) * 100)))
+      }
+      const bytes = new Uint8Array(got)
+      let at = 0
+      for (const part of parts) { bytes.set(part, at); at += part.length }
+      return bytes
+    } catch (e) {
+      lastError = e
+    } finally {
+      clearTimeout(stall)
+    }
+  }
+  throw lastError
+}
 
 // Ду роҳи ишора (ҳар кадомаш кор мекунад):
 //  1) ҷой: даст ба минтақаи рост ё чапи кадр рафт → як слайд; барои навбатӣ дастро ба марказ баргардонед;
@@ -21,20 +56,31 @@ const FRAME_GAP_MS = 40 // ~25 кадр/с барои модел — UI озод
 const PALM = [0, 5, 9, 13, 17] // мич ва асоси ангуштон — маркази каф
 
 let landmarkerPromise = null
-function loadLandmarker() {
+let modelProgress = () => {}
+function loadLandmarker(onProgress) {
+  modelProgress = onProgress || (() => {})
   if (!landmarkerPromise) {
     landmarkerPromise = (async () => {
-      const vision = await import('@mediapipe/tasks-vision')
-      const fileset = MP_FILES
+      const [vision, model] = await Promise.all([
+        import('@mediapipe/tasks-vision'),
+        fetchBytes(MODEL_SOURCES, (pct) => modelProgress(pct)),
+      ])
       const options = (delegate) => ({
-        baseOptions: { modelAssetPath: MODEL_URL, delegate },
+        baseOptions: { modelAssetBuffer: model, delegate },
         runningMode: 'VIDEO', numHands: 1,
         minHandDetectionConfidence: 0.6, minHandPresenceConfidence: 0.6, minTrackingConfidence: 0.5,
       })
-      const gpu = vision.HandLandmarker.createFromOptions(fileset, options('GPU'))
-      const late = new Promise((_, reject) => setTimeout(() => reject(new Error('GPU timeout')), GPU_WAIT_MS))
-      try { return await Promise.race([gpu, late]) }
-      catch { return vision.HandLandmarker.createFromOptions(fileset, options('CPU')) }
+      const create = async (base) => {
+        const fileset = { wasmLoaderPath: `${base}/vision_wasm_internal.js`, wasmBinaryPath: `${base}/vision_wasm_internal.wasm` }
+        const gpu = vision.HandLandmarker.createFromOptions(fileset, options('GPU'))
+        const late = new Promise((_, reject) => setTimeout(() => reject(new Error('GPU timeout')), GPU_WAIT_MS))
+        try { return await Promise.race([gpu, late]) } catch { return vision.HandLandmarker.createFromOptions(fileset, options('CPU')) }
+      }
+      let lastError
+      for (const base of WASM_SOURCES) {
+        try { return await create(base) } catch (e) { lastError = e }
+      }
+      throw lastError
     })().catch((e) => { landmarkerPromise = null; throw Object.assign(e, { model: true }) })
   }
   return landmarkerPromise
@@ -67,6 +113,7 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
   const [error, setError] = useState('')
   const [hand, setHand] = useState(false)
   const [swipe, setSwipe] = useState(null) // { dir, id } — барои тирчаи ишоратӣ
+  const [progress, setProgress] = useState(0) // фоизи боркунии модел
   const [handX, setHandX] = useState(null) // ҷойи даст 0…1 (аз нигоҳи корбар) — нуқта дар пешнамоиши камера
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -92,13 +139,13 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
 
   const start = useCallback(async () => {
     const id = ++runId.current
-    setStatus('loading'); setError('')
+    setStatus('loading'); setError(''); setProgress(0)
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error('no camera api'), { name: 'NotSupported' })
       // Потокро фавран нигоҳ медорем, то агар модел бор нашавад, камера бештар фаъол намонад
       const camera = navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' }, audio: false })
         .then((s) => { if (id === runId.current) streamRef.current = s; else s.getTracks().forEach((t) => t.stop()); return s })
-      const [stream, landmarker] = await Promise.all([camera, loadLandmarker()])
+      const [stream, landmarker] = await Promise.all([camera, loadLandmarker((pct) => id === runId.current && setProgress(pct))])
       if (id !== runId.current) return
       landmarkerRef.current = landmarker
       const v = videoRef.current
@@ -182,5 +229,5 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
   // Ҳангоми баромадан аз саҳифа камераро озод мекунем
   useEffect(() => () => { runId.current++; streamRef.current?.getTracks().forEach((t) => t.stop()) }, [])
 
-  return { status, error, hand, handX, swipe, videoRef, toggle, dismissError: () => { setError(''); setStatus('off') } }
+  return { status, error, progress, hand, handX, swipe, videoRef, toggle, dismissError: () => { setError(''); setStatus('off') } }
 }
