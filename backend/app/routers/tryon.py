@@ -103,7 +103,7 @@ def _checked(db, listing_id: int, photo: UploadFile, person_gender: str | None):
     # Либоси занона ба мард ва мардона ба зан пӯшонда намешавад
     who = person_gender or _detect(person)["gender"]
     if who is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Дар сурат мард ё зан будани шуморо муайян карда натавонистем — лутфан интихоб кунед.")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "AI суратро хонда натавонист. Сурати дигар бор кунед (қад ва рӯй намоён бошад).")
     needed = gender.OUTFIT_GENDER.get(listing.category.slug)
     if needed and needed != who:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT,

@@ -124,7 +124,7 @@ export default function Fitting() {
   const [history, setHistory] = useState([])
   const [busy, setBusy] = useState(false)
   // Мард ё зан дар сурат: AI муайян мекунад, корбар метавонад иваз кунад. Либоси занона ба мард пӯшонда намешавад ва баръакс.
-  const [who, setWho] = useState(null) // { gender: 'male' | 'female' | null, confidence, byUser }
+  const [who, setWho] = useState(null) // { gender: 'male' | 'female' | null, confidence } — аз AI
   const [detecting, setDetecting] = useState(false)
   const photoUrl = usePreview(photo)
 
@@ -173,7 +173,7 @@ export default function Fitting() {
     if (!photo) return toast('Аввал сурати худро бор кунед', 'err')
     if (!outfit) return toast('Либосро аз каталог интихоб кунед', 'err')
     if (detecting) return toast('AI суратро месанҷад, як лаҳза…', 'err')
-    if (!who?.gender) return toast('Мард ё зан будани худро интихоб кунед', 'err')
+    if (!who?.gender) return toast('AI суратро хонда натавонист — сурати дигар бор кунед', 'err')
     if (!fits(outfit.category.slug)) return toast(`Ин либос ${genders[outfit.category.slug] === 'male' ? 'мардона' : 'занона'} аст`, 'err')
     if (!enabled) return toast('Хизмати AI ҳоло кор намекунад. Баъдтар кӯшиш кунед.', 'err')
     if (unsupported) return toast('Ин либосро ҳоло пӯшонда наметавонем', 'err')
@@ -205,8 +205,8 @@ export default function Fitting() {
     if (!file) return
     setDetecting(true)
     api.tryonDetect(file)
-      .then((r) => setWho({ gender: r.gender, confidence: r.confidence, byUser: false }))
-      .catch(() => setWho({ gender: null, confidence: 0, byUser: false }))
+      .then((r) => setWho({ gender: r.gender, confidence: r.confidence }))
+      .catch(() => setWho({ gender: null, confidence: 0 }))
       .finally(() => setDetecting(false))
   }
   const onOutfitDrop = (e) => {
@@ -257,18 +257,14 @@ export default function Fitting() {
               : <PhotoDrop onFile={choosePhoto} onOutfitDrop={onOutfitDrop} />}
 
             {photo && (
-              <div className="ft-gender" role="group" aria-label="Мард ё зан">
-                <span className="ft-gender-label">
-                  {detecting ? 'AI суратро месанҷад…'
-                    : who?.byUser ? 'Шумо интихоб кардед:'
-                    : who?.gender ? `AI муайян кард (${Math.round(who.confidence * 100)}%):`
-                    : 'AI муайян карда натавонист — интихоб кунед:'}
-                </span>
-                {[['male', 'Мард'], ['female', 'Зан']].map(([g, label]) => (
-                  <button key={g} type="button" className={`ft-chip ${who?.gender === g ? 'on' : ''}`} disabled={detecting}
-                    aria-pressed={who?.gender === g} onClick={() => setWho({ gender: g, confidence: 1, byUser: true })}>{label}</button>
-                ))}
-              </div>
+              // AI худаш муайян мекунад: зан — либосҳои занона, мард — мардона (корбар интихоб намекунад)
+              <p className={`ft-gender ${who?.gender ? 'ok' : ''}`} role="status">
+                <Icon name="sparkle" />
+                {detecting ? 'AI суратро месанҷад…'
+                  : who?.gender === 'male' ? 'AI: дар сурат мард — либосҳои мардона нишон дода мешаванд'
+                  : who?.gender === 'female' ? 'AI: дар сурат зан — либосҳои занона нишон дода мешаванд'
+                  : 'AI суратро хонда натавонист — сурати дигар бор кунед'}
+              </p>
             )}
             <button type="button" className="btn btn-gold btn-lg btn-block ft-run" disabled={busy} onClick={run}>
               <Icon name="sparkle" /> {busy ? 'Интизор шавед… (то 1 дақиқа)' : !user ? 'Ворид шавед ва пӯшонед' : outfit ? `«${outfit.title}»-ро пӯшондан` : 'Пӯшондан'}

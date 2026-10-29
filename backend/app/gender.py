@@ -19,7 +19,6 @@ MODEL_SHA256 = "583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299
 TEXT = Path(__file__).with_name("ai") / "clip_gender_text.npy"  # [мард, зан], 512 рақам
 MEAN = np.array([0.48145466, 0.4578275, 0.40821073], np.float32)
 STD = np.array([0.26862954, 0.26130258, 0.27577711], np.float32)
-CONFIDENT = 0.65  # камтар аз ин — «намедонам», корбар худаш интихоб мекунад
 
 # Категорияи либос → барои кӣ
 OUTFIT_GENDER = {"suit": "male", "chapan": "male", "wedding-dress": "female", "national-dress": "female"}
@@ -70,7 +69,7 @@ def _pixels(image):
 
 
 def detect(image) -> dict:
-    """{'gender': 'male' | 'female' | None, 'confidence': 0..1}. None — модел мутмаин нест."""
+    """{'gender': 'male' | 'female', 'confidence': 0..1} — ҳамеша қарори беҳтарини AI (корбар интихоб намекунад)."""
     embed = _get_session().run(None, {"pixel_values": _pixels(image)})[0][0]
     embed = embed / np.linalg.norm(embed)
     logits = 100 * np.load(TEXT) @ embed
@@ -78,4 +77,4 @@ def detect(image) -> dict:
     probs /= probs.sum()
     best = int(probs.argmax())
     confidence = float(probs[best])
-    return {"gender": ("male", "female")[best] if confidence >= CONFIDENT else None, "confidence": round(confidence, 2)}
+    return {"gender": ("male", "female")[best], "confidence": round(confidence, 2)}
