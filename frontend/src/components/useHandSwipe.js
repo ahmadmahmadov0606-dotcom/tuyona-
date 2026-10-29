@@ -54,6 +54,40 @@ const COOLDOWN_MS = 650 // як жест = як слайд
 const REARM_LOST_MS = 600 // даст ин қадар нест буд — ишораи нав мумкин (гум шудани кӯтоҳ ҳисоб намешавад)
 const FRAME_GAP_MS = 40 // ~25 кадр/с барои модел — UI озод мемонад
 const PALM = [0, 5, 9, 13, 17] // мич ва асоси ангуштон — маркази каф
+// Устухонҳои даст (21 нуқтаи MediaPipe): мич → ангуштҳо ва кафи даст
+const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]]
+const TIPS = new Set([4, 8, 12, 16, 20])
+
+/** Скелети дастро дар canvas мекашад (бо ҳамон андоза ва оинаи video). */
+function drawSkeleton(canvas, video, pts) {
+  if (!canvas || !video) return
+  const w = video.videoWidth || 320
+  const h = video.videoHeight || 240
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, w, h)
+  if (!pts) return
+  const k = w / 320
+  ctx.lineCap = 'round'
+  ctx.shadowColor = 'rgba(233, 199, 132, .9)'
+  ctx.shadowBlur = 8 * k
+  ctx.strokeStyle = '#f1cf86'
+  ctx.lineWidth = 3.2 * k
+  ctx.beginPath()
+  for (const [a, b] of BONES) {
+    ctx.moveTo(pts[a].x * w, pts[a].y * h)
+    ctx.lineTo(pts[b].x * w, pts[b].y * h)
+  }
+  ctx.stroke()
+  ctx.shadowColor = 'rgba(111, 220, 140, .9)'
+  for (let i = 0; i < pts.length; i++) {
+    ctx.beginPath()
+    ctx.arc(pts[i].x * w, pts[i].y * h, (TIPS.has(i) ? 4.6 : 3.4) * k, 0, Math.PI * 2)
+    ctx.fillStyle = TIPS.has(i) ? '#ffffff' : '#6fdc8c'
+    ctx.fill()
+  }
+}
 
 let landmarkerPromise = null
 let modelProgress = () => {}
@@ -116,6 +150,7 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
   const [progress, setProgress] = useState(0) // фоизи боркунии модел
   const [handX, setHandX] = useState(null) // ҷойи даст 0…1 (аз нигоҳи корбар) — нуқта дар пешнамоиши камера
   const videoRef = useRef(null)
+  const canvasRef = useRef(null) // скелети даст болои video
   const streamRef = useRef(null)
   const landmarkerRef = useRef(null)
   const onSwipeRef = useRef(onSwipe)
@@ -193,6 +228,7 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
       let res
       try { res = lm.detectForVideo(v, now) } catch { return }
       const pts = res?.landmarks?.[0]
+      drawSkeleton(canvasRef.current, v, pts)
       if (!!pts !== handSeen) { handSeen = !!pts; setHand(handSeen) }
       if (!pts) {
         history.length = 0
@@ -229,5 +265,5 @@ export default function useHandSwipe({ onSwipe, onTilt, paused = false }) {
   // Ҳангоми баромадан аз саҳифа камераро озод мекунем
   useEffect(() => () => { runId.current++; streamRef.current?.getTracks().forEach((t) => t.stop()) }, [])
 
-  return { status, error, progress, hand, handX, swipe, videoRef, toggle, dismissError: () => { setError(''); setStatus('off') } }
+  return { status, error, progress, hand, handX, swipe, videoRef, canvasRef, toggle, dismissError: () => { setError(''); setStatus('off') } }
 }

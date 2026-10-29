@@ -219,11 +219,14 @@ export default function CarsShowroom({ allLink = true }) {
             {/* Дурахши нарми ҳошия дар лаҳзаи «истодан» — айнан бо радиуси корт */}
             {nav.seq > 0 && <span key={nav.seq} className="cs-glow" style={{ animationDelay: `${GLOW_DELAY}ms` }} aria-hidden="true" />}
             <div className={`cs-cam ${handCtl.hand ? 'has-hand' : ''}`} hidden={!handActive} aria-live="polite">
-              <video ref={handCtl.videoRef} muted playsInline aria-label="Пешнамоиши камера" />
+              <div className="cs-cam-view">
+                <video ref={handCtl.videoRef} muted playsInline aria-label="Пешнамоиши камера" />
+                <canvas ref={handCtl.canvasRef} className="cs-cam-bones" aria-hidden="true" />
               {/* Минтақаҳои чап/рост ва нуқтаи даст — корбар мебинад, ки кай ишора қабул мешавад */}
               <span className="cs-zone cs-zone-l" style={{ width: `${ZONE_LEFT * 100}%` }} aria-hidden="true">‹</span>
               <span className="cs-zone cs-zone-r" style={{ width: `${(1 - ZONE_RIGHT) * 100}%` }} aria-hidden="true">›</span>
               {handCtl.handX != null && <span className="cs-hand-dot" style={{ left: `${handCtl.handX * 100}%` }} aria-hidden="true" />}
+              </div>
               {handCtl.swipe && handCtl.status === 'on' && (
                 <span key={handCtl.swipe.id} className="cs-cam-arrow" aria-hidden="true">{handCtl.swipe.dir === 'left' ? '←' : '→'}</span>
               )}
