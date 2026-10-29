@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import CarsGallery from '../components/CarsGallery'
+import CarsShowroom from '../components/CarsShowroom'
 import CategoryIcon from '../components/CategoryIcon'
 import { categoryPhoto } from '../components/categoryMedia'
 import PageBackground from '../components/PageBackground'
@@ -109,7 +109,8 @@ export default function Search() {
       </div>
 
       {/* Галереяи пурраи мошинҳо — дар категорияи «Нақлиёт» */}
-      {groupSlug === 'transport' && <CarsGallery />}
+      {/* Шоуруми мошинҳо: тирчаҳо, ангушт ё ишораи даст бо камера */}
+      {groupSlug === 'transport' && <CarsShowroom allLink={false} />}
 
       <div className="container">
 

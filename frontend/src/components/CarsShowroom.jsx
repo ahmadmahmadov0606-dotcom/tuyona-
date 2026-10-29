@@ -5,7 +5,7 @@ import { CARS, carSrc as src } from '../cars'
 import { Lightbox, OPEN_KEY, OrderModal, pad, Plate, SelectButton, SelectionBar, store, useCarSelection } from './CarsGallery'
 import { usePageHidden } from './PageBackground'
 import { GLOW_DELAY, runSwitch } from './showroomTransition'
-import useHandSwipe from './useHandSwipe'
+import useHandSwipe, { ZONE_LEFT, ZONE_RIGHT } from './useHandSwipe'
 import './CarsShowroom.css'
 
 const N = CARS.length
@@ -89,7 +89,7 @@ function ShowroomCard({ c, offset, cardRef, onOpen, onPick, picked, onSelect }) 
 }
 
 /** «Мошинҳои бартар» дар саҳифаи асосӣ — шоурум бо coverflow ва заминаи акси мошини фаъол */
-export default function CarsShowroom() {
+export default function CarsShowroom({ allLink = true }) {
   const { user } = useAuth()
   const sel = useCarSelection()
   const [ordering, setOrdering] = useState(false)
@@ -102,6 +102,7 @@ export default function CarsShowroom() {
   const [onScreen, setOnScreen] = useState(false)
   const hidden = usePageHidden()
   const rootRef = useRef(null)
+  const trackRef = useRef(null)
   const touch = useRef(null)
   const cards = useRef(new Map()) // id → элементи корт
   const shown = useRef(new Set()) // кортҳое, ки дар рендери пештара намоён буданд
@@ -129,7 +130,16 @@ export default function CarsShowroom() {
   // Худкор ҳар 5 с; ҳангоми hover, фокус дар дохил, берун аз экран, ҷадвали пинҳон ё lightbox — қатъ
   const [focusIn, setFocusIn] = useState(false)
   const handCtl = useHandSwipe({
-    onSwipe: (d) => go(d === 'left' ? 1 : -1), // даст ба чап — мошини навбатӣ
+    onSwipe: (d) => go(d === 'right' ? 1 : -1), // даст ба рост — мошини тарафи рост (навбатӣ) меояд
+    // Кафро мисли руль тоб диҳед — мошини фаъол ҳамон тараф тоб мехӯрад (бе re-render, танҳо тағйирёбандаҳои CSS)
+    onTilt: (deg) => {
+      const el = trackRef.current
+      if (!el) return
+      el.classList.toggle('hand-tilt', deg !== null)
+      const d = Math.max(-45, Math.min(45, deg ?? 0))
+      el.style.setProperty('--hand-ry', `${(-d * 0.9).toFixed(1)}deg`)
+      el.style.setProperty('--hand-rz', `${(d * 0.18).toFixed(1)}deg`)
+    },
     paused: !onScreen || hidden || open >= 0 || ordering,
   })
   const handActive = handCtl.status === 'on' || handCtl.status === 'loading'
@@ -195,7 +205,7 @@ export default function CarsShowroom() {
 
         <div className="cs-stage" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <div className="cs-track" aria-live={running ? 'off' : 'polite'}>
+          <div className="cs-track" ref={trackRef} aria-live={running ? 'off' : 'polite'}>
             {CARS.map((c, i) => {
               const o = offsetOf(i, active)
               if (Math.abs(o) > 2) return null
@@ -210,11 +220,15 @@ export default function CarsShowroom() {
             {nav.seq > 0 && <span key={nav.seq} className="cs-glow" style={{ animationDelay: `${GLOW_DELAY}ms` }} aria-hidden="true" />}
             <div className={`cs-cam ${handCtl.hand ? 'has-hand' : ''}`} hidden={!handActive} aria-live="polite">
               <video ref={handCtl.videoRef} muted playsInline aria-label="Пешнамоиши камера" />
+              {/* Минтақаҳои чап/рост ва нуқтаи даст — корбар мебинад, ки кай ишора қабул мешавад */}
+              <span className="cs-zone cs-zone-l" style={{ width: `${ZONE_LEFT * 100}%` }} aria-hidden="true">‹</span>
+              <span className="cs-zone cs-zone-r" style={{ width: `${(1 - ZONE_RIGHT) * 100}%` }} aria-hidden="true">›</span>
+              {handCtl.handX != null && <span className="cs-hand-dot" style={{ left: `${handCtl.handX * 100}%` }} aria-hidden="true" />}
               {handCtl.swipe && handCtl.status === 'on' && (
                 <span key={handCtl.swipe.id} className="cs-cam-arrow" aria-hidden="true">{handCtl.swipe.dir === 'left' ? '←' : '→'}</span>
               )}
               <span className="cs-cam-state"><i aria-hidden="true" />
-                {handCtl.status === 'loading' ? 'Камера фаъол мешавад…' : handCtl.hand ? 'Даст ёфт шуд' : 'Дастро нишон диҳед'}
+                {handCtl.status === 'loading' ? 'Камера ва модел бор мешаванд…' : handCtl.hand ? 'Ба рост/чап баред ё мисли руль тоб диҳед' : 'Кафи дастро ба камера нишон диҳед'}
               </span>
             </div>
           </div>
@@ -252,7 +266,7 @@ export default function CarsShowroom() {
           <button type="button" className={`cs-hand ${handCtl.status === 'on' ? 'on' : ''} ${handCtl.status === 'loading' ? 'loading' : ''}`}
             onClick={handCtl.toggle} aria-pressed={handActive}
             aria-label={handActive ? 'Идоракунӣ бо дастро хомӯш кардан' : 'Идоракунӣ бо даст (камера)'}
-            title={handActive ? 'Идоракунӣ бо дастро хомӯш кардан' : 'Идоракунӣ бо даст: дастро ба чап ё рост ҳаракат диҳед'}>
+            title={handActive ? 'Идоракунӣ бо дастро хомӯш кардан' : 'Идоракунӣ бо даст: дастро ба рост баред — мошини навбатӣ, ба чап — пештара'}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 12.5V6a1.5 1.5 0 0 1 3 0v5.5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V5.5a1.5 1.5 0 0 1 3 0V12" />
               <path d="M17 9.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.6a6 6 0 0 1-4.6-2.2L4.3 15a1.6 1.6 0 0 1 2.4-2.1L8 14.2" />
@@ -267,9 +281,11 @@ export default function CarsShowroom() {
           </div>
         )}
 
-        <div className="cg-more-wrap">
-          <Link to={ALL_CARS_HREF} className="cg-more">Ҳамаи {N} мошинро бинед <span aria-hidden="true">→</span></Link>
-        </div>
+        {allLink && (
+          <div className="cg-more-wrap">
+            <Link to={ALL_CARS_HREF} className="cg-more">Ҳамаи {N} мошинро бинед <span aria-hidden="true">→</span></Link>
+          </div>
+        )}
       </div>
 
       {open >= 0 && <Lightbox list={CARS} index={open} setIndex={setOpen} onClose={() => setOpen(-1)} sel={sel} />}

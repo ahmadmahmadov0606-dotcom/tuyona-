@@ -38,6 +38,9 @@
   transform: translateX(var(--tx)) rotateY(var(--ry)) scale(var(--sc)); opacity: var(--op);
   box-shadow: 0 30px 70px -34px rgba(0, 0, 0, .95);
   transition: transform .6s var(--ease), opacity .6s var(--ease); }
+/* Гардиши даст (мисли руль): мошини фаъол дар 3D ҳамон тараф тоб мехӯрад */
+.cs-track.hand-tilt .cs-card.is-cur { transform: translateX(var(--tx)) rotateY(calc(var(--ry) + var(--hand-ry, 0deg))) rotateZ(var(--hand-rz, 0deg)) scale(var(--sc));
+  transition: transform .12s linear, opacity .6s var(--ease); }
 .cs-card.is-cur { z-index: 3; --sc: 1; --op: 1; pointer-events: auto; border-color: rgba(233, 199, 132, .4);
   box-shadow: 0 60px 120px -50px #000, 0 0 90px -34px rgba(212, 175, 106, .55); }
 /* Кортҳои паҳлӯ: ҳамон таносуб, scale .82, хамиши сабук ≤12°, нимшаффоф ва каме торик */
@@ -156,6 +159,12 @@
   background: rgba(12, 6, 9, .7); border: 1px solid rgba(233, 199, 132, .45); box-shadow: 0 16px 34px -16px rgba(0, 0, 0, .9); }
 .cs-cam[hidden] { display: none; }
 .cs-cam video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transform: scaleX(-1); opacity: .72; }
+.cs-zone { position: absolute; top: 0; height: calc(100% - 30px); display: grid; place-items: center; font-size: 1.4rem; font-weight: 800;
+  color: rgba(246, 239, 227, .55); background: rgba(212, 175, 110, .14); pointer-events: none; }
+.cs-zone-l { left: 0; border-right: 1px dashed rgba(212, 175, 110, .55); }
+.cs-zone-r { right: 0; border-left: 1px dashed rgba(212, 175, 110, .55); }
+.cs-hand-dot { position: absolute; top: 40%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #6fdc8c;
+  box-shadow: 0 0 0 3px rgba(111, 220, 140, .35), 0 0 12px #6fdc8c; transition: left .08s linear; pointer-events: none; }
 .cs-cam-state { display: flex; align-items: center; gap: 7px; padding: 7px 10px; font-size: .72rem; font-weight: 700; color: #f6efe3; }
 .cs-cam-state i { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #8a7a6a; }
 .cs-cam.has-hand .cs-cam-state i { background: #6fdc8c; box-shadow: 0 0 8px #6fdc8c; }
