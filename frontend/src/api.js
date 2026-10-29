@@ -177,11 +177,27 @@ export const api = {
     else if (photo) fd.append('photo', photo)
     return request('/tryon/advice', { method: 'POST', form: fd })
   },
-  tryOn: (photo, listingId, gender) => {
+  tryonPrepare: (photo, listingId, gender) => {
     const fd = new FormData()
     fd.append('photo', photo)
     fd.append('listing_id', listingId)
     if (gender) fd.append('gender', gender)
+    return request('/tryon/prepare', { method: 'POST', form: fd })
+  },
+  tryonFinish: (photo, listingId, token, result) => {
+    const fd = new FormData()
+    fd.append('photo', photo)
+    fd.append('result', result, 'result.webp')
+    fd.append('listing_id', listingId)
+    fd.append('token', token)
+    return request('/tryon/finish', { method: 'POST', form: fd })
+  },
+  tryOn: (photo, listingId, gender, token) => {
+    const fd = new FormData()
+    fd.append('photo', photo)
+    fd.append('listing_id', listingId)
+    if (gender) fd.append('gender', gender)
+    if (token) fd.append('token', token)
     return request('/tryon', { method: 'POST', form: fd })
   },
   sendFeedback: (b) => request('/feedback', { method: 'POST', body: b }),

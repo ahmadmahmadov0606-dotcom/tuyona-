@@ -422,3 +422,35 @@ def test_feedback(client, user):
     # Спам: зиёда аз 5 дар як соат
     codes = [client.post("/api/feedback", json={"message": f"паём {i} барои санҷиш"}).status_code for i in range(6)]
     assert 429 in codes
+
+
+def test_tryon_browser_flow(client, user, vendor, ref, monkeypatch):
+    # Пӯшондан дар браузер: /prepare (сервер) → Leffa (браузер) → /finish (сервер)
+    import base64
+    from app import gender, tryon
+    monkeypatch.setattr(gender, "detect", lambda image: {"gender": "male", "confidence": 0.9})
+    monkeypatch.setattr(tryon, "garment_jpeg", lambda cover: b"garment-jpeg")
+    r = client.post("/api/listings", headers=vendor, json={
+        "category_id": ref["cat"]["suit"]["id"], "city_id": ref["city"]["dushanbe"]["id"], "title": "Костюм",
+        "description": "", "contact_phone": "901111111", "price_from": 100, "price_unit": "day"})
+    lid = r.json()["id"]
+    client.post(f"/api/listings/{lid}/images", headers=vendor, files={"files": ("a.png", _png(), "image/png")})
+    photo = {"photo": ("p.png", _png(), "image/png")}
+
+    prep = client.post("/api/tryon/prepare", headers=user, files=photo, data={"listing_id": lid})
+    assert prep.status_code == 200, prep.text
+    p = prep.json()
+    assert p["space"] == "franciszzj/Leffa" and p["garment_type"] == "upper_body"
+    assert base64.b64decode(p["garment"]) == b"garment-jpeg" and base64.b64decode(p["person"])[:2] == b"\xff\xd8"
+
+    done = client.post("/api/tryon/finish", headers=user, data={"listing_id": lid, "token": p["token"]},
+                       files={"photo": ("p.png", _png(), "image/png"), "result": ("r.png", _png(), "image/png")})
+    assert done.status_code == 200, done.text
+    assert done.json()["image"].startswith("/uploads/tryon/") and done.json()["provider"] == "leffa-browser"
+    # Токени бегона / либоси дигар / бе токен — манъ
+    other = register(client, "other@test.tj")
+    bad = lambda h, l, t: client.post("/api/tryon/finish", headers=h, data={"listing_id": l, "token": t},
+                                      files={"photo": ("p.png", _png(), "image/png"), "result": ("r.png", _png(), "image/png")}).status_code
+    assert bad(other, lid, p["token"]) == 403
+    assert bad(user, lid + 1, p["token"]) == 403
+    assert bad(user, lid, "garbage") == 403

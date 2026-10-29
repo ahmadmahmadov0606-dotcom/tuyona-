@@ -1,8 +1,12 @@
+import base64
 import io
 import logging
 import re
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Literal
+
+import jwt
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy import select
@@ -83,24 +87,19 @@ def detect_gender(request: Request, photo: UploadFile, user: OptionalUser):
     return _detect(_read_photo(photo))
 
 
-@router.post("")
-def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(),
-           person_gender: Literal["male", "female"] | None = Form(None, alias="gender")):
-    """Сурати корбар + либоси эълон → сурати корбар дар он либос. Сурати аслӣ дар сервер нигоҳ дошта намешавад.
-    gender — ҷинсе, ки корбар тасдиқ кардааст; агар набошад, AI аз сурат муайян мекунад."""
+PREP_MINUTES = 10
+
+
+def _checked(db, listing_id: int, photo: UploadFile, person_gender: str | None):
+    """Санҷишҳои умумӣ: либос, сурат, мард/зан. (эълон, қисми бадан, сурат, акси либос) бармегардонад."""
     listing = db.scalar(select(Listing).options(*LOAD).where(Listing.id == listing_id, Listing.is_active.is_(True)))
     part = tryon.WEARABLE.get(listing.category.slug) if listing else None
     if not part:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Либос ёфт нашуд")
     if not listing.cover:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Ин либос сурат надорад")
-    if part not in tryon.status()["supports"]:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Ин либосро ҳоло пӯшонда наметавонем")
-
     person = _read_photo(photo)
-    s = get_settings()
-    cover = s.upload_dir / listing.cover.rsplit("/", 1)[-1]
-
+    cover = get_settings().upload_dir / listing.cover.rsplit("/", 1)[-1]
     # Либоси занона ба мард ва мардона ба зан пӯшонда намешавад
     who = person_gender or _detect(person)["gender"]
     if who is None:
@@ -109,10 +108,80 @@ def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(
     if needed and needed != who:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT,
                             f"Ин либоси {gender.NAMES[needed]} аст. Барои сурати {'мард' if who == 'male' else 'зан'} либоси {gender.NAMES[who]}-ро интихоб кунед.")
+    return listing, part, person, cover
 
+
+def _prep_token(user_id: int, listing_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    return jwt.encode({"sub": str(user_id), "lid": listing_id, "typ": "tryon", "iat": now, "exp": now + timedelta(minutes=PREP_MINUTES)},
+                      get_settings().secret_key, algorithm=get_settings().jwt_algorithm)
+
+
+def _valid_prep(token: str | None, user_id: int, listing_id: int) -> bool:
+    if not token:
+        return False
+    try:
+        data = jwt.decode(token, get_settings().secret_key, algorithms=[get_settings().jwt_algorithm])
+    except jwt.PyJWTError:
+        return False
+    return data.get("typ") == "tryon" and data.get("sub") == str(user_id) and data.get("lid") == listing_id
+
+
+def _save_result(jpeg: bytes) -> str:
+    folder = get_settings().upload_dir / "tryon"
+    folder.mkdir(exist_ok=True)
+    name = f"{uuid.uuid4().hex}.jpg"
+    (folder / name).write_bytes(jpeg)
+    return f"/uploads/tryon/{name}"
+
+
+@router.post("/prepare")
+def prepare(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(),
+            person_gender: Literal["male", "female"] | None = Form(None, alias="gender")):
+    """Қадами 1-и пӯшондан дар браузер: сурат ва либоси тайёр (3:4) барои Leffa.
+    Браузер онҳоро бевосита ба Hugging Face мефиристад — квотаи GPU аз IP-и худи корбар, на аз сервер."""
+    listing, part, person, cover = _checked(db, listing_id, photo, person_gender)
     if not daily_limiter.allow(f"tryon:{user.id}"):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Имрӯз кӯшишҳо тамом шуданд. Фардо боз кӯшиш кунед.")
+    padded, _ = tryon.pad_to_portrait(person)
+    model, garment_type = tryon.LEFFA_TYPES[part]
+    b64 = lambda data: base64.b64encode(data).decode()
+    return {
+        "token": _prep_token(user.id, listing.id),
+        "space": tryon.LEFFA_SPACE, "model": model, "garment_type": garment_type,
+        "person": b64(tryon._jpeg(padded)), "garment": b64(tryon.garment_jpeg(cover)),
+    }
 
+
+@router.post("/finish")
+def finish(photo: UploadFile, result: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(), token: str = Form()):
+    """Қадами 3: натиҷаи Leffa аз браузер → андозаи сурати аслӣ ва рӯйи аслӣ. Танҳо бо токени /prepare (10 дақиқа)."""
+    from PIL import Image, UnidentifiedImageError
+
+    if not _valid_prep(token, user.id, listing_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Вақти кӯшиш гузашт. Боз «Пӯшондан»-ро пахш кунед.")
+    person = _read_photo(photo)
+    raw = result.file.read(MAX_PHOTO_MB * 1024 * 1024 + 1)
+    try:
+        if len(raw) > MAX_PHOTO_MB * 1024 * 1024:
+            raise OSError("too large")
+        Image.open(io.BytesIO(raw)).verify()
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Натиҷаи AI хонда нашуд. Боз кӯшиш кунед.")
+    jpeg, face_restored = tryon.finish(person, raw)
+    return {"image": _save_result(jpeg), "listing_id": listing_id, "provider": "leffa-browser", "face_restored": face_restored}
+
+
+@router.post("")
+def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(),
+           person_gender: Literal["male", "female"] | None = Form(None, alias="gender"), token: str | None = Form(None)):
+    """Пӯшондан тавассути сервер (захира, агар браузер ба Hugging Face пайваст нашавад).
+    token аз /prepare — кӯшиши ҳамон либос дубора ҳисоб намешавад."""
+    listing, part, person, cover = _checked(db, listing_id, photo, person_gender)
+    if part not in tryon.status()["supports"]:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Ин либосро ҳоло пӯшонда наметавонем")
+    if not _valid_prep(token, user.id, listing.id) and not daily_limiter.allow(f"tryon:{user.id}"):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Имрӯз кӯшишҳо тамом шуданд. Фардо боз кӯшиш кунед.")
     try:
         result, provider, face_restored = tryon.run_tryon(person, tryon.garment_jpeg(cover), part, tryon.describe(listing.title, listing.category.slug))
     except tryon.TryOnError as error:
@@ -122,12 +191,7 @@ def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(
         if isinstance(error, tryon.TryOnTimeout):
             raise HTTPException(status.HTTP_504_GATEWAY_TIMEOUT, "Хизмати AI бедор мешавад. Пас аз як дақиқа боз кӯшиш кунед.")
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Хизмати AI ҳоло банд аст. Баъдтар кӯшиш кунед.")
-
-    folder = s.upload_dir / "tryon"
-    folder.mkdir(exist_ok=True)
-    name = f"{uuid.uuid4().hex}.jpg"
-    (folder / name).write_bytes(result)
-    return {"image": f"/uploads/tryon/{name}", "listing_id": listing.id, "provider": provider, "face_restored": face_restored}
+    return {"image": _save_result(result), "listing_id": listing.id, "provider": provider, "face_restored": face_restored}
 
 
 RESULT_PATH = re.compile(r"^/uploads/tryon/[0-9a-f]{32}\.jpg$")

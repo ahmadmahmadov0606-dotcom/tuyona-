@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api } from '../api'
+import { api, ApiError } from '../api'
 import { useAuth } from '../auth'
 import Icon from '../components/Icon'
 import NightPage from '../components/NightPage'
@@ -179,7 +179,18 @@ export default function Fitting() {
     if (unsupported) return toast('Ин либосро ҳоло пӯшонда наметавонем', 'err')
     setBusy(true)
     try {
-      const data = await api.tryOn(photo, outfit.id, who.gender)
+      // 1) сервер санҷида тайёр мекунад; 2) браузер ба Leffa мефиристад (квотаи худи корбар); 3) сервер рӯйро барқарор мекунад.
+      // Агар роҳи браузер нашуд — пӯшондан тавассути сервер (бо ҳамон токен, кӯшиш дубора ҳисоб намешавад).
+      const prep = await api.tryonPrepare(photo, outfit.id, who.gender)
+      let data
+      try {
+        const { leffaInBrowser } = await import('../tryonBrowser')
+        data = await api.tryonFinish(photo, outfit.id, prep.token, await leffaInBrowser(prep))
+      } catch (browserError) {
+        if (browserError instanceof ApiError && browserError.status >= 400 && browserError.status < 500) throw browserError
+        console.warn('Ороишгоҳ: роҳи браузер нашуд, тавассути сервер', browserError)
+        data = await api.tryOn(photo, outfit.id, who.gender, prep.token)
+      }
       const entry = { ...data, outfit }
       setResult(entry)
       setHistory((h) => [entry, ...h].slice(0, 8))

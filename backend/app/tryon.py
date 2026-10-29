@@ -372,9 +372,7 @@ def run_tryon(person_image, garment, category, description="clothing"):
 
     TryOnTimeout — вақт тамом шуд; TryOnError — ҳамаи провайдерҳо натавонистанд.
     """
-    from PIL import Image
-
-    padded, box = pad_to_portrait(person_image)
+    padded, _ = pad_to_portrait(person_image)
     person = _jpeg(padded)
 
     deadline = time.monotonic() + TIMEOUT
@@ -393,11 +391,20 @@ def run_tryon(person_image, garment, category, description="clothing"):
             quota = quota or isinstance(error, TryOnQuota)
             errors.append(str(error))
             continue
-        # Пуркуниро бармегардонем, то натиҷа пиксел ба пиксел бо сурати аслӣ мувофиқ бошад.
-        result = Image.open(io.BytesIO(raw)).convert("RGB").resize(SIZE, Image.LANCZOS).crop(box).resize(person_image.size, Image.LANCZOS)
-        final, face_restored = restore_face(person_image, result)
-        return _jpeg(final), name, face_restored
+        final, face_restored = finish(person_image, raw)
+        return final, name, face_restored
     raise (TryOnQuota if quota else TryOnError)("; ".join(errors) or "no provider available")
+
+
+def finish(person_image, raw):
+    """Натиҷаи AI (3:4, SIZE) → андозаи сурати аслӣ: пуркунӣ бурида мешавад ва рӯю мӯйи аслӣ бармегарданд.
+    (JPEG, рӯй барқарор шуд ё не) бармегардонад."""
+    from PIL import Image
+
+    _, box = pad_to_portrait(person_image)
+    result = Image.open(io.BytesIO(raw)).convert("RGB").resize(SIZE, Image.LANCZOS).crop(box).resize(person_image.size, Image.LANCZOS)
+    final, face_restored = restore_face(person_image, result)
+    return _jpeg(final), face_restored
 
 
 def prepare_all():
