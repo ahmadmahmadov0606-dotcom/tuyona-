@@ -9,6 +9,7 @@ import PageBackground from '../components/PageBackground'
 import CategoriesA from '../components/CategoriesA'
 import CategoriesB from '../components/CategoriesB'
 import CategoriesC from '../components/CategoriesC'
+import { FeedbackForm } from './Feedback'
 import { ListingCard, Spinner } from '../components/ui'
 import { todayISO, useAsync, useCatalog } from '../utils'
 
@@ -145,6 +146,21 @@ export default function Home() {
             </Tilt>
           ))}
         </div>
+      </section>
+
+      <section className="container section home-feedback" id="fikr">
+        <div className="home-fb-copy reveal">
+          <p className="kicker">Фикри шумо барои мо муҳим аст</p>
+          <h2>Фикру пешниҳод</h2>
+          <Ornament />
+          <p>Хато ёфтед, пешниҳод доред ё мехоҳед ташаккур гӯед? Ҳамин ҷо нависед — ворид шудан лозим нест. Мо ҳар паёмро мехонем ва Тӯёнаро беҳтар мекунем.</p>
+          <ul>
+            <li>Хато дар сайт — нависед дар кадом саҳифа</li>
+            <li>Хизмати лозимӣ нест — пешниҳод кунед</li>
+            <li>Ба шумо писанд омад — баҳо гузоред ⭐</li>
+          </ul>
+        </div>
+        <div className="reveal"><FeedbackForm page="/" /></div>
       </section>
 
       <section className="container section">

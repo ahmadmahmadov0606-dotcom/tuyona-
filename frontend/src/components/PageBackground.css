@@ -47,6 +47,9 @@
 /* Саҳифаи асосӣ: сарлавҳаҳои бахшҳо «Маъмултарин», «Чӣ тавр кор мекунад?» ва пайвандҳои «Бештар →» */
 .has-page-bg .section-title h2 { color: #fff8ee; }
 .has-page-bg .section-title .link { color: #f3dca2; }
+/* Саҳифаи асосӣ: бахши «Фикру пешниҳод» */
+.has-page-bg .home-fb-copy h2 { color: #fff8ee; }
+.has-page-bg .home-fb-copy p, .has-page-bg .home-fb-copy li { color: rgba(245, 233, 218, .82); }
 /* Саҳифаи ҷустуҷӯ: ҷадвалҳо ва шумораи натиҷаҳо */
 .has-page-bg .cp-tab { color: rgba(245, 233, 218, .78); }
 .has-page-bg .cp-tab:hover, .has-page-bg .cp-tab.on { color: #f3dca2; }
