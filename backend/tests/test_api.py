@@ -440,7 +440,7 @@ def test_tryon_browser_flow(client, user, vendor, ref, monkeypatch):
     prep = client.post("/api/tryon/prepare", headers=user, files=photo, data={"listing_id": lid})
     assert prep.status_code == 200, prep.text
     p = prep.json()
-    assert p["space"] == "franciszzj/Leffa" and p["garment_type"] == "upper_body"
+    assert p["provider"] == "idm" and p["space"] == "yisol/IDM-VTON" and p["description"]  # болопӯш — IDM (квотаи 60 с)
     assert base64.b64decode(p["garment"]) == b"garment-jpeg" and base64.b64decode(p["person"])[:2] == b"\xff\xd8"
 
     done = client.post("/api/tryon/finish", headers=user, data={"listing_id": lid, "token": p["token"]},

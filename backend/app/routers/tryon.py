@@ -127,6 +127,16 @@ def _valid_prep(token: str | None, user_id: int, listing_id: int) -> bool:
     return data.get("typ") == "tryon" and data.get("sub") == str(user_id) and data.get("lid") == listing_id
 
 
+def _quota_message(error: str) -> str:
+    """«Try again in 5:12:40» аз Hugging Face → вақти фаҳмо барои корбар."""
+    m = re.search(r"Try again in (\d+):(\d+):\d+", error)
+    if not m:
+        return "Квотаи ройгони AI барои имрӯз тамом шуд. Баъдтар кӯшиш кунед."
+    hours, minutes = int(m.group(1)), int(m.group(2))
+    wait = f"{hours} соат" if hours else f"{max(minutes, 1)} дақиқа"
+    return f"Квотаи ройгони AI барои имрӯз тамом шуд. Тақрибан пас аз {wait} боз кӯшиш кунед."
+
+
 def _save_result(jpeg: bytes) -> str:
     folder = get_settings().upload_dir / "tryon"
     folder.mkdir(exist_ok=True)
@@ -144,13 +154,13 @@ def prepare(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form
     if not daily_limiter.allow(f"tryon:{user.id}"):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Имрӯз кӯшишҳо тамом шуданд. Фардо боз кӯшиш кунед.")
     padded, _ = tryon.pad_to_portrait(person)
-    model, garment_type = tryon.LEFFA_TYPES[part]
     b64 = lambda data: base64.b64encode(data).decode()
-    return {
-        "token": _prep_token(user.id, listing.id),
-        "space": tryon.LEFFA_SPACE, "model": model, "garment_type": garment_type,
-        "person": b64(tryon._jpeg(padded)), "garment": b64(tryon.garment_jpeg(cover)),
-    }
+    common = {"token": _prep_token(user.id, listing.id), "person": b64(tryon._jpeg(padded)), "garment": b64(tryon.garment_jpeg(cover))}
+    # Болопӯш — IDM-VTON (квотаи GPU 60 с), либоси пурра — Leffa (180 с)
+    if part == "upper":
+        return {**common, "provider": "idm", "space": tryon.HF_SPACE, "description": tryon.describe(listing.title, listing.category.slug)}
+    model, garment_type = tryon.LEFFA_TYPES[part]
+    return {**common, "provider": "leffa", "space": tryon.LEFFA_SPACE, "model": model, "garment_type": garment_type}
 
 
 @router.post("/finish")
@@ -187,7 +197,7 @@ def try_on(photo: UploadFile, user: CurrentUser, db: DB, listing_id: int = Form(
     except tryon.TryOnError as error:
         log.warning("Try-on failed: %s", error)
         if isinstance(error, tryon.TryOnQuota):
-            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Квотаи ройгони AI тамом шуд. Баъдтар кӯшиш кунед.")
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, _quota_message(str(error)))
         if isinstance(error, tryon.TryOnTimeout):
             raise HTTPException(status.HTTP_504_GATEWAY_TIMEOUT, "Хизмати AI бедор мешавад. Пас аз як дақиқа боз кӯшиш кунед.")
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Хизмати AI ҳоло банд аст. Баъдтар кӯшиш кунед.")

@@ -350,10 +350,12 @@ def restore_face(original, result):
 # --- API-и умумӣ -----------------------------------------------------------
 
 # ном, ҳоло дастрас аст ё не, иҷро, кадом қисмҳои баданро мепӯшонад (IDM-VTON танҳо болоро).
+# Квотаи ройгони ZeroGPU: IDM-VTON 60 с мехоҳад, Leffa 180 с — болопӯш (костюм, чапон) аввал бо IDM,
+# либоси пурра (арӯсӣ, атлас) танҳо бо Leffa. Ҳамин тавр бо ҳамон квота ~3× бештар пӯшондан.
 PROVIDERS = [
     ("fashn", lambda: bool(get_settings().fashn_api_key), _fashn, {"upper", "lower", "full"}),
-    ("leffa", leffa_available, _leffa, {"upper", "lower", "full"}),
     ("huggingface", huggingface_available, _huggingface, {"upper"}),
+    ("leffa", leffa_available, _leffa, {"upper", "lower", "full"}),
 ]
 
 

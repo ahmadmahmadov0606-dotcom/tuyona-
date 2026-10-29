@@ -10,15 +10,24 @@ const blob = (b64) => new Blob([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0
 export async function leffaInBrowser(prep) {
   const { Client } = await import('@gradio/client')
   const client = await Client.connect(prep.space)
-  const job = client.predict('/leffa_predict_vt', [
-    blob(prep.person), blob(prep.garment),
-    false, // ref_acceleration
-    30, // қадамҳо (ҳадди ақали Leffa)
-    2.5, // guidance scale
-    42, // seed-и собит
-    prep.model, prep.garment_type,
-    false, // repaint
-  ])
+  // Болопӯш — IDM-VTON (квотаи GPU 60 с), либоси пурра — Leffa (180 с); сервер дар /prepare интихоб мекунад
+  const job = prep.provider === 'idm'
+    ? client.predict('/tryon', [
+      { background: blob(prep.person), layers: [], composite: null }, blob(prep.garment), prep.description,
+      true, // ниқоби бадан худкор
+      true, // буридан ба 3:4
+      40, // қадамҳо
+      42, // seed-и собит
+    ])
+    : client.predict('/leffa_predict_vt', [
+      blob(prep.person), blob(prep.garment),
+      false, // ref_acceleration
+      30, // қадамҳо (ҳадди ақали Leffa)
+      2.5, // guidance scale
+      42, // seed-и собит
+      prep.model, prep.garment_type,
+      false, // repaint
+    ])
   let timer
   const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Leffa timeout')), TIMEOUT_MS) })
   try {
