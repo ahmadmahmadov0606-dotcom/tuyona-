@@ -82,7 +82,7 @@ export default function Search() {
         {/* ----- Hero ----- */}
         <section className={`cp-hero ${heroPhoto ? 'has-photo' : ''}`}>
           {heroPhoto && (
-            <img key={group.slug} className="cp-hero-photo" src={heroPhoto.src} srcSet={heroPhoto.srcSet} sizes="(max-width: 1300px) 100vw, 1300px"
+            <img key={group.slug} className="cp-hero-photo" src={heroPhoto.src} srcSet={heroPhoto.srcSet} sizes="(max-width: 1200px) 100vw, 1200px"
               alt="" decoding="async" />
           )}
           <nav className="cp-crumbs" aria-label="Пайраҳа">

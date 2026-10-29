@@ -65,7 +65,8 @@ p { margin: 0 0 .8em; }
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
 /* Паҳнои асосии мундариҷа: дар экранҳои калон тақрибан пурра (то 1720px), бо фосилаи канорӣ, ки бо экран калон мешавад */
-.container { width: 100%; max-width: 1720px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 56px); }
+/* Паҳноии саҳифа: мундариҷа то 1200px (бо ҳошияҳо) */
+.container { width: 100%; max-width: calc(1200px + 2 * clamp(16px, 3vw, 24px)); margin: 0 auto; padding: 0 clamp(16px, 3vw, 24px); }
 .muted { color: var(--ink-2); }
 .small { font-size: .86rem; }
 .center { text-align: center; }
@@ -144,7 +145,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .header { position: sticky; top: 10px; z-index: 50; padding: 10px 0 0; }
 .header.on-hero { margin-bottom: -84px; }
 .header-in { position: relative; display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px;
-  max-width: 1680px; width: calc(100% - 2 * clamp(12px, 2.6vw, 40px)); padding: 0 10px 0 14px; border-radius: 999px;
+  max-width: 1200px; width: calc(100% - 2 * clamp(12px, 2.6vw, 24px)); padding: 0 10px 0 14px; border-radius: 999px;
   background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border: 1px solid color-mix(in srgb, var(--gold-2) 35%, transparent); box-shadow: var(--shadow); transition: background .4s, border-color .4s, box-shadow .4s; }
 .header.on-hero:not(.scrolled) .header-in { background: rgba(255, 240, 230, .06); border-color: rgba(233, 199, 132, .28); box-shadow: none; }

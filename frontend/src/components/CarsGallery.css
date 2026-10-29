@@ -129,7 +129,7 @@
   background: rgba(14, 9, 12, .9); border-top: 1px solid rgba(233, 199, 132, .4); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 -14px 34px -16px rgba(0, 0, 0, .8); color: #f6efe3; animation: cg-bar-in .4s var(--ease); }
 @keyframes cg-bar-in { from { transform: translateY(100%); } }
-.cg-bar-in { max-width: 1680px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.cg-bar-in { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
 .cg-bar-cars { display: flex; gap: 8px; flex: none; }
 .cg-bar-thumb, .cg-bar-slot { position: relative; width: 56px; height: 44px; border-radius: 10px; overflow: hidden; flex: none; }
 .cg-bar-thumb { padding: 0; border: 1px solid #e9c784; cursor: pointer; background: #17131a; }
