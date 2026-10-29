@@ -177,7 +177,7 @@ def _leffa(person, garment, category, description, deadline):
             job = _client(LEFFA_SPACE).submit(
                 handle_file(str(person_path)), handle_file(str(garment_path)),
                 False,  # ref_acceleration
-                25,  # қадамҳо (30 → 25: тезтар, сифат қариб ҳамон)
+                30,  # қадамҳо (ҳадди ақали Leffa — 30; камтар хато медиҳад)
                 2.5,  # guidance scale
                 42,  # seed-и собит
                 model, garment_type,
@@ -266,17 +266,46 @@ def _remove_background(data):
         return remove(data, session=_rembg)
 
 
+def _main_mask(alpha):
+    """Танҳо қисми калонтарини пайваста (либос) — тамғаҳои музей, кулоҳ ва ашёи хурд партофта мешаванд."""
+    import cv2
+    import numpy as np
+
+    solid = (alpha > 40).astype(np.uint8)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(solid, connectivity=8)
+    if count <= 1:
+        return None
+    biggest = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    return labels == biggest
+
+
 def prepare_garment(data):
-    """Либос бе замина (агар rembg бошад), дар миёнаи заминаи сафеди 3:4."""
+    """Либос бе замина, бурида то худи либос ва дар миёнаи заминаи сафеди 3:4.
+    Агар тоза кардани замина либосро «хӯрд» (масалан либоси сафед дар заминаи равшан), акси аслӣ истифода мешавад."""
+    import numpy as np
     from PIL import Image
 
-    image = Image.open(io.BytesIO(data))
+    original = Image.open(io.BytesIO(data)).convert("RGB")
+    image = original.convert("RGBA")
     try:
-        image = Image.open(io.BytesIO(_remove_background(data)))
+        cut = Image.open(io.BytesIO(_remove_background(data))).convert("RGBA")
+        alpha = np.asarray(cut)[..., 3]
+        mask = _main_mask(alpha)
+        # Ҳеҷ чиз намонд (камтар аз 1%) — rembg хато кард, акси аслӣ мемонад
+        if mask is not None and mask.mean() > 0.01:
+            pixels = np.asarray(cut).copy()
+            pixels[..., 3] = np.where(mask, alpha, 0)
+            image = Image.fromarray(pixels)
     except ImportError:
         pass
-    image = image.convert("RGBA")
-    image.thumbnail((int(SIZE[0] * 0.9), int(SIZE[1] * 0.9)), Image.LANCZOS)
+    box = image.getchannel("A").getbbox() or (0, 0, image.width, image.height)
+    pad = int(0.03 * max(image.size))
+    image = image.crop((max(0, box[0] - pad), max(0, box[1] - pad), min(image.width, box[2] + pad), min(image.height, box[3] + pad)))
+    image.thumbnail((int(SIZE[0] * 0.92), int(SIZE[1] * 0.92)), Image.LANCZOS)
+    # Хурд бошад — калон мекунем, то либос тамоми чорчӯбаро пур кунад
+    k = min(SIZE[0] * 0.92 / image.width, SIZE[1] * 0.92 / image.height)
+    if k > 1:
+        image = image.resize((int(image.width * k), int(image.height * k)), Image.LANCZOS)
     canvas = Image.new("RGBA", SIZE, (255, 255, 255, 255))
     canvas.alpha_composite(image, ((SIZE[0] - image.width) // 2, (SIZE[1] - image.height) // 2))
     return canvas.convert("RGB")
@@ -284,7 +313,7 @@ def prepare_garment(data):
 
 def garment_jpeg(cover: Path) -> bytes:
     """Акси тайёри либос (бе замина, 3:4) — як бор сохта, дар uploads/garments/ нигоҳ дошта мешавад."""
-    cached = get_settings().upload_dir / "garments" / f"{cover.stem}.jpg"
+    cached = get_settings().upload_dir / "garments" / f"{cover.stem}-v3.jpg"  # v3: бурида то либос, бе ашёи хурд
     if cached.exists():
         return cached.read_bytes()
     data = _jpeg(prepare_garment(cover.read_bytes()))

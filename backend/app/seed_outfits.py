@@ -25,25 +25,35 @@ API = "https://commons.wikimedia.org/w/api.php"
 OUTFITS = [
     ("suit", "Смокинги сиёҳи классикӣ", 450, "Смокинги сиёҳ бо ёқаи атлас — барои домод дар шаби тӯй.",
      "File:Three-Piece Black Wool Tuxedo Belonging to Charles Lindbergh - DPLA - 843a9a277cbac3b6ecd673477bcd8b82 (page 2).jpg"),
-    ("suit", "Пиҷаки зиёфатии сиёҳ", 350, "Пиҷаки сиёҳ бо ёқаи шол, матои пашмин.",
-     "File:Jacket, dinner (AM 2005.20.3-1).jpg"),
+    # Ороишгоҳ: либос бояд рост ва аз рӯ ба рӯ бошад (дар манекен ё дар тани одам). Акси ҳамвор бо остинҳои
+    # кушода AI-ро ба «бол» мебарад — чунин аксҳо иваз шуданд (ниг. RENAMED).
+    ("suit", "Пиҷаки хокистарии хатдор", 350, "Пиҷаки хокистарии классикӣ бо хатҳои борик, се тугма — барои тӯй ва зиёфат.",
+     "File:BijanSuit1.jpg"),
     ("suit", "Пиҷаки кабуди хатдор", 300, "Пиҷаки кабуди торик бо хатҳои борик — барои хостгорӣ ва рӯзи тӯй.",
      "File:Loto Casual Blazers (125).jpg"),
     ("chapan", "Чапони кабуди духтадӯзӣ", 400, "Чапони бахмали кабуд бо гулдӯзии зардӯзӣ дар канорҳо.",
      "File:Manteau brodé de cérémonie (Boukhara, Ouzbékistan) (5676363385).jpg"),
-    ("chapan", "Чапони сурхи абрбандӣ (икат)", 350, "Чапони пахтагии лиҳофӣ бо нақши абрбандии сурх.",
-     "File:Robe (chapan) from Uzbekistan, 20th century, silk, cotton, plain weave, warp ikat, quilted, printed lining, HMArt.JPG"),
-    ("chapan", "Чапони рахдор ва тоқӣ", 300, "Чапони анъанавии рахдор бо тоқии гулдӯзӣ.",
-     "File:Chapan, tubeteika (2024-02-06) 01.jpg"),
+    ("chapan", "Чапони кабуди лиҳофӣ", 350, "Чапони лиҳофии кабуд — анъанавӣ, гарм ва зебо барои домод.",
+     "File:Chopon kiygan erkak.png"),
+    ("chapan", "Чапони рахдор ва тоқӣ", 300, "Чапони анъанавии рахдор бо тоқӣ — барои домод ва меҳмонони тӯй.",
+     "File:Erkaklar milliy libosi 3.png"),
     ("wedding-dress", "Либоси арӯсии сафеди тӯрӣ", 2500, "Либоси арӯсии сафед бо тӯр ва домани пуфак.",
      "File:1957 wedding dress.jpg"),
-    ("wedding-dress", "Либоси арӯсии сафеди атласӣ", 2200, "Либоси арӯсии сафед аз атлас бо гулдӯзии барҷаста ва остини дароз.",
-     "File:Wedding Dress.jpg"),
+    ("wedding-dress", "Либоси арӯсии сафеди атласӣ", 2200, "Либоси арӯсии сафеди атласӣ бо силуэти «A», камари гулдӯзӣ ва домани васеъ.",
+     "File:A Line Wedding Dress.jpg"),
     ("national-dress", "Либоси атласи миллӣ", 600, "Куртаи атлас ва домани абрбандӣ — барои ош ва рӯзи дуюми тӯй.",
      "File:Dress for women of Uzbekistan.jpg"),
-    ("national-dress", "Либоси атласи сурх", 550, "Либоси атласи сурху сафед бо доманаи рахдор.",
-     "File:National satin dress.jpg"),
+    ("national-dress", "Либоси атласи кабуд", 550, "Либоси атласи миллии кабуд бо нақши абрбандӣ — барои ош ва рӯзи дуюми тӯй.",
+     "File:Ayollar milliy libosi 13.png"),
 ]
+
+
+# Номи кӯҳна → нав: дар базаҳои мавҷуда эълон бо ном, тавсиф ва акси нав иваз мешавад
+RENAMED = {
+    "Пиҷаки зиёфатии сиёҳ": "Пиҷаки хокистарии хатдор",
+    "Чапони сурхи абрбандӣ (икат)": "Чапони кабуди лиҳофӣ",
+    "Либоси атласи сурх": "Либоси атласи кабуд",
+}
 
 
 def _get(url):
@@ -88,26 +98,36 @@ def run():
     city = db.scalar(select(City).where(City.slug == "dushanbe"))
     if not vendor or not city:
         raise SystemExit("Аввал иҷро кунед: python -m app.seed --demo")
-    added = 0
+    added = updated = 0
+    old_titles = {new: old for old, new in RENAMED.items()}
     for slug, title, price, text, file in OUTFITS:
-        if db.scalar(select(Listing).where(Listing.title == title)):
+        listing = db.scalar(select(Listing).where(Listing.title.in_([title, old_titles.get(title, title)])))
+        # Акси ҳамин файл аллакай ҳаст — бетағйир
+        if listing and file[5:].replace(" ", "_") in urllib.parse.unquote(listing.description or ""):
             continue
         category = db.scalar(select(Category).where(Category.slug == slug))
         info = commons_info(file)
         name = f"{uuid.uuid4().hex}.jpg"
         (s.upload_dir / name).write_bytes(to_jpeg(_get(info["url"])))
         credit = f"Акс: {info['author']}, {info['license']} — Wikimedia Commons: {info['page']}"
-        listing = Listing(
-            vendor_id=vendor.id, category_id=category.id, city_id=city.id, title=title,
-            description=f"{text} Иҷора барои рӯзи тӯй; андозаро пешакӣ занг зада аниқ кунед.\n\n{credit}",
-            address=f"{city.name}", contact_phone="+992900000001", price_from=price, price_unit=PriceUnit.day,
-        )
+        description = f"{text} Иҷора барои рӯзи тӯй; андозаро пешакӣ занг зада аниқ кунед.\n\n{credit}"
+        if listing:  # акси кӯҳна (ва номи кӯҳна) иваз мешавад
+            for image in list(listing.images):
+                (s.upload_dir / image.url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
+                listing.images.remove(image)
+            listing.title, listing.description, listing.price_from = title, description, price
+            updated += 1
+        else:
+            listing = Listing(
+                vendor_id=vendor.id, category_id=category.id, city_id=city.id, title=title, description=description,
+                address=f"{city.name}", contact_phone="+992900000001", price_from=price, price_unit=PriceUnit.day,
+            )
+            db.add(listing)
+            added += 1
         listing.images.append(ListingImage(url=f"/uploads/{name}", sort=0))
-        db.add(listing)
         db.commit()
-        added += 1
         print(f"+ {title}  ({info['license']}, {info['author']})")
-    print(f"Илова шуд: {added}, аллакай буд: {len(OUTFITS) - added}")
+    print(f"Илова шуд: {added}, иваз шуд: {updated}, бетағйир: {len(OUTFITS) - added - updated}")
     db.close()
 
 
