@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../api'
-import { useAuth } from '../../auth'
 import Calendar from '../../components/Calendar'
 import { ErrorBox, Spinner, useToast } from '../../components/ui'
 import { fmtDate, imgUrl, PRICE_UNITS, useCatalog } from '../../utils'
@@ -15,7 +14,6 @@ const EMPTY = {
 export default function ListingForm() {
   const { id } = useParams()
   const isNew = !id
-  const { user } = useAuth()
   const catalog = useCatalog()
   const nav = useNavigate()
   const toast = useToast()

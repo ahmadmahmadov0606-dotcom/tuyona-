@@ -104,7 +104,10 @@
 .lp-card h2 { margin: 0; font-family: var(--serif); font-size: 2rem; font-weight: 600; color: #fff8ee; }
 .lp-ornament { display: block; width: 150px; height: 16px; margin: 6px 0 16px; color: var(--lp-gold); }
 .lp-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.lp-desc-text { white-space: pre-wrap; line-height: 1.75; margin: 0 0 8px; color: var(--lp-cream); }
+.lp-desc-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; margin: 0 0 8px; color: var(--lp-cream); }
+.lp-credits { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--lp-line); display: grid; gap: 4px;
+  font-size: .8rem; color: rgba(245, 233, 218, .6); overflow-wrap: anywhere; }
+.lp-credits a { color: var(--lp-gold); }
 .lp-link { min-height: 44px; padding: 6px 0; border: 0; background: none; color: #f3dca2; font-weight: 800; cursor: pointer; }
 .lp-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .lp-sub { font-family: var(--serif); font-size: 1.4rem; margin: 20px 0 10px; color: #fff8ee; }

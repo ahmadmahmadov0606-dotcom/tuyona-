@@ -242,7 +242,6 @@ def _gemini_schema(schema: dict) -> dict:
 
 
 def _gemini(db: Session, system_text: str, today: str, history: list[dict], found: dict) -> str:
-    s = get_settings()
     contents = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in history]
     body = {
         "systemInstruction": {"parts": [{"text": f"{system_text}\n\n{today}"}]},

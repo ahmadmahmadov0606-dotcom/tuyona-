@@ -2,7 +2,6 @@ from datetime import date
 
 from fastapi import APIRouter
 from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
 
 from app.deps import DB, CurrentUser, VendorUser
 from app.models import Booking, BookingStatus, Favorite, Listing

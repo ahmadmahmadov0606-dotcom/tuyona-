@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
-from sqlalchemy.orm import selectinload
 
 from app.deps import DB, CurrentUser
 from app.models import Booking, BookingStatus, Feedback, Listing, Role, User

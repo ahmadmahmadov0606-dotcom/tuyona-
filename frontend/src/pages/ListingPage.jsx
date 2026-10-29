@@ -337,14 +337,27 @@ function CategoryArt({ slug }) {
 }
 
 /* ---------- Тавсиф ---------- */
+// «Акс: муаллиф, иҷозатнома — Wikimedia Commons: https://…» — қайди муаллифи акс (талаби CC BY/BY-SA)
+const CREDIT_RE = /^Акс: (.+?) — ([^:]+): (https?:\/\/\S+)$/
+
 function Description({ text }) {
   const [open, setOpen] = useState(false)
-  if (!text) return <p className="lp-soft">Хизматрасон ҳоло тавсиф нанавиштааст.</p>
-  const long = text.length > DESC_LIMIT
+  const lines = (text || '').split('\n')
+  const credits = lines.map((l) => l.trim().match(CREDIT_RE)).filter(Boolean)
+  const body = lines.filter((l) => !CREDIT_RE.test(l.trim())).join('\n').trim()
+  if (!body && !credits.length) return <p className="lp-soft">Хизматрасон ҳоло тавсиф нанавиштааст.</p>
+  const long = body.length > DESC_LIMIT
   return (
     <>
-      <p className="lp-desc-text">{long && !open ? `${text.slice(0, DESC_LIMIT).replace(/\s+\S*$/, '')}…` : text}</p>
+      {body && <p className="lp-desc-text">{long && !open ? `${body.slice(0, DESC_LIMIT).replace(/\s+\S*$/, '')}…` : body}</p>}
       {long && <button type="button" className="lp-link" onClick={() => setOpen(!open)}>{open ? 'Камтар' : 'Бештар хондан'}</button>}
+      {credits.length > 0 && (
+        <ul className="lp-credits">
+          {credits.map(([, who, source, url]) => (
+            <li key={url}>Акс: {who} — <a href={url} target="_blank" rel="noopener noreferrer">{source}</a></li>
+          ))}
+        </ul>
+      )}
     </>
   )
 }

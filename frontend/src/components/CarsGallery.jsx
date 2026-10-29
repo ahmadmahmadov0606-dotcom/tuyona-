@@ -90,7 +90,7 @@ export default function CarsGallery() {
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf) }
-  }, [])
+  }, [list.length])
 
   const goToCard = (i) => gridRef.current?.children[i]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
 

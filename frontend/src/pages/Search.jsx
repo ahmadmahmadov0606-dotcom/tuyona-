@@ -203,6 +203,7 @@ function Tabs({ tabs }) {
   const barRef = useRef(null)
   const activeIdx = tabs.findIndex((t) => t.active)
 
+  const tabsKey = tabs[1]?.key // гурӯҳ иваз шуд — навори ҷадвалҳо аз нав ҳисоб мешавад
   useLayoutEffect(() => {
     const place = () => {
       const wrap = wrapRef.current
@@ -217,7 +218,7 @@ function Tabs({ tabs }) {
     window.addEventListener('resize', place)
     document.fonts?.ready.then(place)
     return () => window.removeEventListener('resize', place)
-  }, [activeIdx, tabs.length, tabs[1]?.key])
+  }, [activeIdx, tabs.length, tabsKey])
 
   return (
     <div className="cp-tabs-wrap">
