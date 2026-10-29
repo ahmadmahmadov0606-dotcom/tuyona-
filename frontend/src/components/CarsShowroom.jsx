@@ -232,6 +232,13 @@ export default function CarsShowroom({ allLink = true }) {
               </span>
             </div>
           </div>
+          {/* Тугмаи калон — идоракунӣ бо даст бояд намоён бошад, на танҳо нишонаи хурд дар поён */}
+          {!handActive && (
+            <button type="button" className="cs-hand-cta" onClick={handCtl.toggle}>
+              <span aria-hidden="true">✋</span>
+              <span><b>Бо даст идора кунед</b><small>камера: дастро ба рост/чап баред</small></span>
+            </button>
+          )}
           <button type="button" className="cs-arrow cs-prev" onClick={() => go(-1)} aria-label="Мошини пештара">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
           </button>
