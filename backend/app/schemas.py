@@ -177,7 +177,7 @@ OSH_MAX_GUESTS = 200
 class BookingCreate(BaseModel):
     listing_id: int
     event_date: date
-    guests: int | None = Field(default=None, ge=1, le=OSH_MAX_GUESTS)
+    guests: int | None = Field(default=None, ge=1, le=10_000)  # ҳадди қонун (150/200) — дар routers/bookings бо паёми тоҷикӣ
     note: str = Field(default="", max_length=1000)
     contact_phone: Phone
 

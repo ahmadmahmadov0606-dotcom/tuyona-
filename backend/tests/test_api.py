@@ -161,7 +161,8 @@ def test_law_guest_limits(client, user, make_listing, ref):
     book = lambda l, n: client.post("/api/bookings", headers=user, json={
         "listing_id": l["id"], "event_date": FUTURE, "guests": n, "contact_phone": "902222222"}).status_code
     assert book(hall, 151) == 400
-    assert book(osh, 201) == 422
+    assert book(osh, 201) == 400
+    assert book(hall, 300) == 400  # паёми қонун, на хатои санҷиши майдон
     assert book(osh, 200) == 201
     assert book(hall, 150) == 201
 
