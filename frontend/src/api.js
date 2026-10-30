@@ -22,7 +22,7 @@ function errorMessage(status, body) {
     // Хатоҳои санҷиши Pydantic (422)
     return d.map((e) => {
       const field = e.loc?.[e.loc.length - 1]
-      const msg = (e.msg || '').replace(/^Value error, /, '')
+      const msg = translateError(e)
       return field && typeof field === 'string' ? `${FIELD_NAMES[field] || field}: ${msg}` : msg
     }).join('; ')
   }
@@ -30,10 +30,31 @@ function errorMessage(status, body) {
   return 'Хатое рух дод'
 }
 
+// Матнҳои англисии Pydantic → тоҷикӣ (паёмҳои худи сервер, ки бо «Value error» меоянд, бетағйир мемонанд)
+function translateError(e) {
+  const c = e.ctx || {}
+  switch (e.type) {
+    case 'missing': return 'ҳатмист'
+    case 'string_too_short': return c.min_length === 1 ? 'ҳатмист' : `на камтар аз ${c.min_length} аломат`
+    case 'string_too_long': return `на зиёда аз ${c.max_length} аломат`
+    case 'greater_than_equal': return `на камтар аз ${c.ge}`
+    case 'greater_than': return `бояд аз ${c.gt} зиёд бошад`
+    case 'less_than_equal': return `на зиёда аз ${c.le}`
+    case 'less_than': return `бояд аз ${c.lt} кам бошад`
+    case 'int_parsing': case 'float_parsing': case 'int_type': case 'float_type': return 'рақам ворид кунед'
+    case 'date_parsing': case 'date_from_datetime_parsing': case 'date_type': return 'санаи нодуруст'
+    case 'string_pattern_mismatch': return 'формати нодуруст'
+    case 'enum': case 'literal_error': return 'қимати нодуруст'
+  }
+  if (e.type === 'value_error' && /email address/.test(e.msg || '')) return 'email-и нодуруст (масалан: nom@gmail.com)'
+  return (e.msg || '').replace(/^Value error, /, '')
+}
+
 const FIELD_NAMES = {
   email: 'Email', phone: 'Телефон', contact_phone: 'Телефон', password: 'Парол', full_name: 'Ном',
   title: 'Сарлавҳа', price_from: 'Нарх', event_date: 'Сана', guests: 'Меҳмонон',
   capacity: 'Ғунҷоиш', description: 'Тавсиф',
+  message: 'Паём', name: 'Ном', contact: 'Тамос', rating: 'Баҳо', comment: 'Шарҳ', city: 'Шаҳр',
   cars: 'Мошинҳо', start_time: 'Вақт', pickup_address: 'Суроға', note: 'Изҳорот',
 }
 

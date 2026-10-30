@@ -34,6 +34,9 @@ services:
       HF_TOKEN: ${HF_TOKEN:-}
       FASHN_API_KEY: ${FASHN_API_KEY:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      SITE_URL: ${SITE_URL:-https://tuyona.king.tj}
+      GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
+      YANDEX_VERIFICATION: ${YANDEX_VERIFICATION:-}
     volumes: [uploads:/srv/backend/uploads]
     depends_on:
       db: { condition: service_healthy }

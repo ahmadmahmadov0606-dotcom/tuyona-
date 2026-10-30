@@ -454,3 +454,35 @@ def test_tryon_browser_flow(client, user, vendor, ref, monkeypatch):
     assert bad(other, lid, p["token"]) == 403
     assert bad(user, lid + 1, p["token"]) == 403
     assert bad(user, lid, "garbage") == 403
+
+
+# ---------- SEO ----------
+TEMPLATE = '<!doctype html><html lang="tg"><head><meta name="description" content="x" /><title>x</title></head><body><div id="root"></div></body></html>'
+
+
+def test_seo_pages(client, make_listing):
+    import re
+    from app import seo
+    from app.db import SessionLocal
+    l = make_listing(title="Лимузини сафед", description="Барои арӯс.\n\nАкс: Муаллиф, CC BY — Wikimedia Commons: https://x")
+    with SessionLocal() as db:
+        page = seo.build(db, f"listing/{l['id']}", {})
+        html = seo.render(TEMPLATE, page)
+        assert page.status == 200 and page.robots == "index, follow"
+        assert "<title>Лимузини сафед — Мошини арӯс, Душанбе | Тӯёна</title>" in html
+        assert f'<link rel="canonical" href="https://tuyona.king.tj/listing/{l["id"]}" />' in html
+        for tag in ("og:title", "og:description", "og:image", "og:url", "og:type", 'og:locale" content="tg_TJ', 'twitter:card" content="summary_large_image'):
+            assert tag in html, tag
+        assert html.count('name="description"') == 1 and "Акс: Муаллиф" not in re.search(r'name="description" content="([^"]*)', html)[1]
+        assert '<h1>Лимузини сафед</h1>' in html and '"priceCurrency": "TJS"' in html
+        # Гурӯҳ, саҳифаҳои хусусӣ ва 404
+        assert seo.build(db, "search", {"group": "transport", "page": "2"}).canonical == "/search?group=transport"
+        assert seo.build(db, "admin", {}).robots == "noindex, nofollow"
+        assert seo.build(db, "no/such", {}).status == 404 and seo.build(db, "listing/999999", {}).status == 404
+        sitemap = seo.sitemap_xml(db)
+        assert f"/listing/{l['id']}</loc>" in sitemap and "/search?group=transport</loc>" in sitemap and "/admin" not in sitemap
+        assert "Sitemap: https://tuyona.king.tj/sitemap.xml" in seo.robots_txt()
+        jpeg = seo.og_image(db, f"listing/{l['id']}")
+        from PIL import Image
+        import io
+        assert Image.open(io.BytesIO(jpeg)).size == (1200, 630)

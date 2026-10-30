@@ -5,12 +5,14 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import get_settings
+from app import seo
 from app.db import Base, engine, migrate_phone_to_email
+from app.deps import DB
 from app.routers import admin, assistant, auth, bookings, car_orders, catalog, feedback, listings, me, tryon
 
 log = logging.getLogger("tuyona")
@@ -70,6 +72,38 @@ def health():
 
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
+
+# ---------- SEO: robots.txt, sitemap.xml, тасвирҳои Open Graph ----------
+@app.get("/robots.txt", include_in_schema=False)
+def robots():
+    return PlainTextResponse(seo.robots_txt())
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap(db: DB):
+    return Response(seo.sitemap_xml(db), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/og/default.jpg", include_in_schema=False)
+def og_default(db: DB):
+    return Response(seo.og_image(db, "default"), media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/og/group/{slug}.jpg", include_in_schema=False)
+def og_group(slug: str, db: DB):
+    data = seo.og_image(db, f"group/{slug}")
+    if data is None:
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    return Response(data, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/og/listing/{listing_id}.jpg", include_in_schema=False)
+def og_listing(listing_id: int, db: DB):
+    data = seo.og_image(db, f"listing/{listing_id}")
+    if data is None:
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    return Response(data, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
 # Агар frontend сохта нашуда бошад, "/" ба сайти Vite (ё /docs) мегузарад, на 404.
 if not FRONTEND_DIST.exists():
 
@@ -82,11 +116,24 @@ if not FRONTEND_DIST.exists():
 if FRONTEND_DIST.exists():
     app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
 
+    _template: dict = {}
+
+    def index_template() -> str:
+        """dist/index.html (пас аз npm run build аз нав хонда мешавад)."""
+        path = FRONTEND_DIST / "index.html"
+        mtime = path.stat().st_mtime
+        if _template.get("mtime") != mtime:
+            _template.update(mtime=mtime, html=path.read_text(encoding="utf-8"))
+        return _template["html"]
+
     @app.get("/{full_path:path}", include_in_schema=False)
-    def spa(full_path: str):
+    def spa(full_path: str, request: Request, db: DB):
         if full_path.startswith(("api/", "uploads/")):
             return JSONResponse(status_code=404, content={"detail": "Not found"})
         file = FRONTEND_DIST / full_path
         if full_path and file.is_file() and FRONTEND_DIST in file.resolve().parents:
             return FileResponse(file)
-        return FileResponse(FRONTEND_DIST / "index.html")
+        # Саҳифаҳои SPA: метатегҳо ва матни саҳифа аз сервер (SEO ва превюи паёмрасонҳо)
+        page = seo.build(db, full_path, dict(request.query_params))
+        return HTMLResponse(seo.render(index_template(), page), status_code=page.status,
+                            headers={"Cache-Control": "no-cache"})

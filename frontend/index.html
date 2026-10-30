@@ -6,12 +6,28 @@
     <meta name="description" content="Тӯёна — ҳамаи хизматҳои тӯй дар як ҷо: тӯйхона, мошини арӯс, сароянда, суратгир ва ғайра." />
     <meta name="theme-color" content="#1a0b17" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="icon" href="/icons/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Сервер (backend/app/seo.py) барои ҳар саҳифа title, description, canonical, Open Graph ва матни саҳифаро илова мекунад -->
+    <style>
+      .ssr { max-width: 1200px; margin: 0 auto; padding: 96px 24px 48px; font: 16px/1.6 Manrope, system-ui, sans-serif; color: #f6efe3; background: #1a0b17; }
+      .ssr a { color: #e9c784; }
+      .ssr nav ul { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; }
+      .ssr h1 { font: 600 2.4rem/1.15 'Cormorant Garamond', Georgia, serif; }
+      .ssr img { max-width: 100%; height: auto; border-radius: 12px; margin: 6px 6px 0 0; }
+      body:has(.ssr) { background: #1a0b17; }
+    </style>    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>Тӯёна — хизматҳои тӯй дар Тоҷикистон</title>
   </head>
   <body>
+    <noscript>
+      <p style="margin:0;padding:12px 16px;background:#7a1f3d;color:#fff;font:15px/1.5 system-ui,sans-serif;text-align:center">
+        Барои брон, ороишгоҳи AI ва харита JavaScript-ро фаъол кунед. Рӯйхати хизматҳо ва маълумот бе он ҳам дар поён намоён аст.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

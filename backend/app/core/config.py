@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     upload_dir: Path = BASE_DIR / "uploads"
+
+    # SEO: суроғаи асосии сайт (canonical, og:url, sitemap) ва кодҳои тасдиқи Google / Яндекс
+    site_url: str = "https://tuyona.king.tj"
+    google_site_verification: str = ""
+    yandex_verification: str = ""
     max_upload_mb: int = 5
     max_images_per_listing: int = 12
 

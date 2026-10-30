@@ -60,7 +60,7 @@ function ShowroomCard({ c, offset, cardRef, onOpen, onPick, picked, onSelect }) 
       <img className="cs-card-img" src={src(c.id, 1200)} alt={c.name} decoding="async" style={{ objectPosition: c.focus || c.pos }} />
       <span className="cs-card-shade" aria-hidden="true" />
       <span className="cs-corners" aria-hidden="true"><i /><i /><i /><i /></span>
-      {isCur && <button type="button" className="cs-card-open" onClick={onOpen} tabIndex={-1} aria-hidden="true" />}
+      {isCur && <div className="cs-card-open" onClick={onOpen} aria-hidden="true" />}
       <div className="cs-panel">
         <div className="cs-info">
           {brand && <span className="cs-brand">{brand}</span>}
