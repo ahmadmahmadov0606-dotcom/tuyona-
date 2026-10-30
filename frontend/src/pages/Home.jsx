@@ -111,7 +111,7 @@ export default function Home() {
       <FittingTeaser />
 
       <section className="container section">
-        <SectionTitle kicker="Интихоби ҷуфтҳои навхонадор" title="Маъмултарин" more={<Link to="/search?sort=popular" className="link">Бештар →</Link>} />
+        <SectionTitle kicker="Интихоби ҷуфтҳои навхонадор" title="Маъмултарин" center more={<Link to="/search?sort=popular" className="link">Бештар →</Link>} />
         {popular.loading ? <Spinner /> : (
           <div className="lc-grid">
             {popular.data?.items.map((l) => <ListingCard key={l.id} l={l} />)}
